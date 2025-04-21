@@ -1,4 +1,4 @@
-const clientId = 'JOUW_CLIENT_ID_HIER';
+const clientId = '2c5922b245944d7087cacfc63872f736';
 const redirectUri = window.location.origin + window.location.pathname;
 const scopes = 'streaming user-read-email user-read-private';
 
