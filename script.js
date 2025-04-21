@@ -20,6 +20,9 @@ if (!accessToken) {
   }
 }
 
+// Log the access token for debugging
+console.log('Access Token:', accessToken);
+
 // Wait for the document to load before using buttons
 document.addEventListener('DOMContentLoaded', () => {
   const playButton = document.getElementById('play');
