@@ -4,39 +4,39 @@ const scopes = 'streaming user-read-email user-read-private user-modify-playback
 
 let accessToken = localStorage.getItem('spotify_token');
 
-// Kijken of we net terugkomen van Spotify met een token in de URL
+// Check if we just returned from Spotify with a token in the URL
 if (!accessToken) {
   const hash = window.location.hash;
   if (hash.includes('access_token')) {
     const params = new URLSearchParams(hash.substring(1));
     accessToken = params.get('access_token');
     localStorage.setItem('spotify_token', accessToken);
-    // Verwijder token uit de URL
+    // Remove token from the URL
     window.history.replaceState({}, document.title, redirectUri);
   } else {
-    // Geen token aanwezig, dus doorsturen naar Spotify login
+    // No token present, redirect to Spotify login
     const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}`;
     window.location.href = authUrl;
   }
 }
 
-// Wachten tot document geladen is voor we knoppen gebruiken
+// Wait for the document to load before using buttons
 document.addEventListener('DOMContentLoaded', () => {
   const playButton = document.getElementById('play');
 
   playButton.addEventListener('click', async () => {
     if (!accessToken) {
-      alert('Geen toegangstoken gevonden. Probeer opnieuw in te loggen.');
+      alert('No access token found. Please log in again.');
       return;
     }
 
     const deviceId = await getActiveDeviceId();
     if (!deviceId) {
-      alert('Geen actieve Spotify-speler gevonden. Open Spotify op een ander apparaat en probeer opnieuw.');
+      alert('No active Spotify player found. Open Spotify on another device and try again.');
       return;
     }
 
-    const trackUri = 'spotify:track:11dFghVXANMlKmJXsNCbNl'; // voorbeeldtrack
+    const trackUri = 'spotify:track:11dFghVXANMlKmJXsNCbNl'; // example track
 
     try {
       const response = await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
@@ -50,18 +50,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }),
       });
 
-      if (response.status === 204) {
-        console.log('Track wordt afgespeeld!');
+      if (response.ok) {
+        console.log('Track is now playing!');
       } else {
-        console.warn('Kan niet afspelen, statuscode:', response.status);
+        const errorData = await response.json();
+        console.warn('Cannot play track, status code:', response.status, 'Error:', errorData);
       }
     } catch (error) {
-      console.error('Fout bij afspelen:', error);
+      console.error('Error while trying to play track:', error);
     }
   });
 });
 
-// Ophalen van actieve Spotify player (zoals je telefoon/desktop app)
+// Fetch active Spotify player (like your phone/desktop app)
 async function getActiveDeviceId() {
   try {
     const response = await fetch('https://api.spotify.com/v1/me/player/devices', {
@@ -73,7 +74,7 @@ async function getActiveDeviceId() {
     const active = data.devices.find(d => d.is_active);
     return active ? active.id : null;
   } catch (err) {
-    console.error('Fout bij ophalen van apparaten:', err);
+    console.error('Error fetching devices:', err);
     return null;
   }
 }
