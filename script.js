@@ -4,42 +4,55 @@ const scopes = 'streaming user-read-email user-read-private user-modify-playback
 
 let accessToken = localStorage.getItem('spotify_token');
 
-// Check if we just returned from Spotify with a token in the URL
-if (!accessToken) {
-  const hash = window.location.hash;
-  if (hash.includes('access_token')) {
-    const params = new URLSearchParams(hash.substring(1));
-    accessToken = params.get('access_token');
-    localStorage.setItem('spotify_token', accessToken);
-    // Remove token from the URL
-    window.history.replaceState({}, document.title, redirectUri);
-  } else {
-    // No token present, redirect to Spotify login
-    const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}`;
-    window.location.href = authUrl;
-  }
+// 🔁 Check op fout in URL (bijv. "unsupported_response_type")
+const hash = window.location.hash;
+const urlParams = new URLSearchParams(hash.substring(1));
+const error = urlParams.get('error');
+
+if (error) {
+  document.body.innerHTML = `
+    <div style="text-align: center; margin-top: 50px; color: white; font-family: sans-serif;">
+      <h2>⚠️ Fout bij inloggen met Spotify</h2>
+      <p>Spotify gaf de fout: <strong>${error}</strong></p>
+      <p>Probeer opnieuw te <a href="#" onclick="retryLogin()">inloggen</a>.</p>
+    </div>
+  `;
+  window.history.replaceState({}, document.title, redirectUri); // verwijder fout uit URL
+  throw new Error(`Spotify error: ${error}`);
 }
 
-// Log the access token for debugging
-console.log('Access Token:', accessToken);
+// 🔐 Token uit URL ophalen als die er is
+if (!accessToken && hash.includes('access_token')) {
+  accessToken = urlParams.get('access_token');
+  localStorage.setItem('spotify_token', accessToken);
+  window.history.replaceState({}, document.title, redirectUri); // clean URL
+}
 
-// Wait for the document to load before using buttons
+// 🚪 Als er helemaal geen token is (en ook geen error): redirect naar Spotify login
+if (!accessToken && !error) {
+  const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}`;
+  window.location.href = authUrl;
+}
+
+// 🎧 Wachten tot pagina geladen is voor knoppen
 document.addEventListener('DOMContentLoaded', () => {
   const playButton = document.getElementById('play');
 
+  if (!playButton) return;
+
   playButton.addEventListener('click', async () => {
     if (!accessToken) {
-      alert('No access token found. Please log in again.');
+      alert('Geen toegangstoken gevonden. Log opnieuw in.');
       return;
     }
 
     const deviceId = await getActiveDeviceId();
     if (!deviceId) {
-      alert('No active Spotify player found. Open Spotify on another device and try again.');
+      alert('Geen actieve Spotify-speler gevonden. Open Spotify op een apparaat.');
       return;
     }
 
-    const trackUri = 'spotify:track:11dFghVXANMlKmJXsNCbNl'; // example track
+    const trackUri = 'spotify:track:11dFghVXANMlKmJXsNCbNl'; // voorbeeldtrack
 
     try {
       const response = await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
@@ -53,19 +66,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }),
       });
 
-      if (response.ok) {
-        console.log('Track is now playing!');
+      if (response.status === 204) {
+        console.log('Track afgespeeld!');
       } else {
-        const errorData = await response.json();
-        console.warn('Cannot play track, status code:', response.status, 'Error:', errorData);
+        console.warn('Kon niet afspelen:', response.status);
       }
     } catch (error) {
-      console.error('Error while trying to play track:', error);
+      console.error('Fout bij afspelen:', error);
     }
   });
 });
 
-// Fetch active Spotify player (like your phone/desktop app)
+// 📱 Ophalen actieve player (zoals telefoon of Spotify desktop)
 async function getActiveDeviceId() {
   try {
     const response = await fetch('https://api.spotify.com/v1/me/player/devices', {
@@ -77,7 +89,14 @@ async function getActiveDeviceId() {
     const active = data.devices.find(d => d.is_active);
     return active ? active.id : null;
   } catch (err) {
-    console.error('Error fetching devices:', err);
+    console.error('Fout bij ophalen apparaten:', err);
     return null;
   }
+}
+
+// 🔁 Functie om opnieuw in te loggen als je fout krijgt
+function retryLogin() {
+  localStorage.removeItem('spotify_token');
+  const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}`;
+  window.location.href = authUrl;
 }
