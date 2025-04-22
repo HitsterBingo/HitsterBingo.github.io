@@ -152,6 +152,7 @@
       if (player) {
         player.stopVideo(); // Stop de video
       }
+      playBtn.style.display = "inline-block";
       startScanner(); // Start opnieuw scannen
     });
 
@@ -160,6 +161,7 @@
       if (videoId) {
         player.loadVideoById(videoId); // Laad de video
         player.playVideo(); // Speel af
+        playBtn.style.display = "none";
       }
     });
   </script>
