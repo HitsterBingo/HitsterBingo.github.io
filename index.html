@@ -17,6 +17,7 @@
       margin: 0;
       padding: 20px;
       text-align: center;
+      overflow: hidden;
     }
 
     #qr-reader {
@@ -40,18 +41,33 @@
     }
 
     button {
-      margin: 5px;
-      padding: 10px 20px;
-      font-size: 16px;
+      margin: 10px;
+      padding: 15px 30px;
+      font-size: 18px;
       background-color: #1db954;
       border: none;
-      border-radius: 5px;
+      border-radius: 8px;
       color: white;
       cursor: pointer;
+      width: 80%; /* Zorgt ervoor dat de knoppen breder zijn */
+      max-width: 400px; /* Max breedte van de knoppen */
     }
 
     button:hover {
       background-color: #1ed760;
+    }
+
+    @media (max-width: 600px) {
+      button {
+        font-size: 16px;
+        padding: 12px 24px;
+        width: 90%;
+      }
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
     }
   </style>
 </head>
