@@ -133,7 +133,10 @@
 
     // Retry-knop om opnieuw te scannen
     retryBtn.addEventListener("click", () => {
-      startScanner();
+      if (player) {
+        player.stopVideo(); // Stop de video
+      }
+      startScanner(); // Start opnieuw scannen
     });
 
     // Play-knop om de video af te spelen
