@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Hitster QR Scanner</title>
-  <script src="https://unpkg.com/html5-qrcode"></script> <!-- ✅ Werkt in browser -->
+  <script src="https://unpkg.com/html5-qrcode"></script>
   <style>
     body {
       background-color: #121212;
@@ -39,6 +39,7 @@
 
   <script>
     const html5QrCode = new Html5Qrcode("qr-reader");
+    let alreadyScanned = false;
 
     Html5Qrcode.getCameras().then(cameras => {
       if (cameras && cameras.length) {
@@ -47,15 +48,19 @@
           { deviceId: { exact: cam.id } },
           { fps: 10, qrbox: 250 },
           (decodedText) => {
+            if (alreadyScanned) return; // ⛔️ Stop als al gescand
             console.log("Gescande QR:", decodedText);
+
             if (decodedText.includes("youtube.com/watch?v=")) {
+              alreadyScanned = true; // ✅ Markeer als gescand
               const videoId = new URL(decodedText).searchParams.get("v");
+
               if (videoId) {
                 const player = document.getElementById("yt-player");
                 const container = document.getElementById("yt-container");
                 player.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0&showinfo=0&rel=0&modestbranding=1`;
                 container.style.display = "block";
-                html5QrCode.stop();
+                html5QrCode.stop(); // 🛑 Stop scanner
               }
             }
           },
