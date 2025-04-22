@@ -12,32 +12,27 @@ function onYouTubeIframeAPIReady() {
 }
 
 // 2. Mode toggling
-const scanModeBtn     = document.getElementById('mode-scan');
-const catModeBtn      = document.getElementById('mode-cat');
-const playlistModeBtn = document.getElementById('mode-playlist');
+const scanBtn     = document.getElementById('mode-scan');
+const catBtn      = document.getElementById('mode-cat');
+const playlistBtn = document.getElementById('mode-playlist');
 
-const scanSection     = document.getElementById('scanner-section');
-const catSection      = document.getElementById('categories-section');
-const playlistSection = document.getElementById('playlist-section');
+const scanSec     = document.getElementById('scanner-section');
+const catSec      = document.getElementById('categories-section');
+const playSec     = document.getElementById('playlist-section');
 
 function hideAll() {
-  scanSection.style.display = 'none';
-  catSection.style.display  = 'none';
-  playlistSection.style.display = 'none';
+  scanSec.style.display = 'none';
+  catSec.style.display  = 'none';
+  playSec.style.display = 'none';
 }
 
-scanModeBtn.addEventListener('click', () => {
-  hideAll();
-  scanSection.style.display = 'block';
-});
-catModeBtn.addEventListener('click', () => {
-  hideAll();
-  catSection.style.display = 'block';
-});
-playlistModeBtn.addEventListener('click', () => {
-  hideAll();
-  playlistSection.style.display = 'block';
-});
+scanBtn.addEventListener('click', () => { hideAll(); scanSec.style.display = 'block'; });
+catBtn .addEventListener('click', () => { hideAll(); catSec .style.display = 'block'; });
+playlistBtn.addEventListener('click', () => { hideAll(); playSec.style.display = 'block'; });
+
+// init in scan‑mode
+hideAll();
+scanSec.style.display = 'block';
 
 // 3. QR scanner
 const html5QrCode = new Html5Qrcode('qr-reader');
@@ -46,9 +41,9 @@ document.getElementById('start-scan').addEventListener('click', () => {
     { facingMode: 'environment' },
     { fps: 10, qrbox: 250 },
     decoded => {
-      if (decoded.includes('youtube.com/watch?v=')) {
+      if (decoded.includes('youtube.com/watch?')) {
         const url = new URL(decoded);
-        const v = url.searchParams.get('v');
+        const v   = url.searchParams.get('v');
         if (v) {
           html5QrCode.stop();
           player.loadVideoById(v);
@@ -68,16 +63,26 @@ fetch('categories.json')
     categories = data;
     renderCategoryButtons();
   })
-  .catch(err => console.error('Kan categories.json niet laden:', err));
+  .catch(err => console.error('Kon categories niet laden:', err));
 
 function renderCategoryButtons() {
-  const catsDiv = document.getElementById('categories');
-  Object.keys(categories).forEach(cat => {
+  const container = document.getElementById('categories');
+  Object.entries(categories).forEach(([cat, val]) => {
     const btn = document.createElement('button');
-    btn.textContent = cat;
+    btn.textContent   = cat;
     btn.classList.add('cat-btn');
-    btn.onclick = () => showTracks(cat);
-    catsDiv.appendChild(btn);
+    btn.onclick = () => {
+      if (typeof val === 'string') {
+        // val is een playlist-URL
+        const listId = new URL(val).searchParams.get('list');
+        player.loadPlaylist({ listType: 'playlist', list: listId, index: 0 });
+        player.playVideo();
+      } else {
+        // val is array met losse nummers
+        showTracks(cat);
+      }
+    };
+    container.appendChild(btn);
   });
 }
 
@@ -105,28 +110,16 @@ function showTracks(cat) {
   });
 }
 
-// 5. Playlist loader
+// 5. Playlist loader (handmatig plakken)
 document.getElementById('load-playlist').addEventListener('click', () => {
-  const url = document.getElementById('playlist-url').value;
+  const raw = document.getElementById('playlist-url').value;
   try {
-    const parsed = new URL(url);
-    const listId = parsed.searchParams.get('list');
-    if (!listId) throw new Error('Geen playlist ID gevonden');
-    // Laad de hele playlist in de player
-    player.loadPlaylist({
-      listType: 'playlist',
-      list: listId,
-      index: 0,
-      startSeconds: 0,
-      suggestedQuality: 'default'
-    });
+    const u      = new URL(raw);
+    const listId = u.searchParams.get('list');
+    if (!listId) throw new Error();
+    player.loadPlaylist({ listType:'playlist', list:listId, index:0 });
     player.playVideo();
-  } catch (e) {
-    alert('Ongeldige playlist URL');
-    console.error(e);
+  } catch {
+    alert('Ongeldige playlist-URL');
   }
 });
-
-// Init: start in scan‑modus
-hideAll();
-scanSection.style.display = 'block';
