@@ -5,12 +5,12 @@
   <title>Hitster Game</title>
   <!-- QR‑scanner -->
   <script src="https://unpkg.com/html5-qrcode"></script>
-  <!-- YouTube IFrame API -->
+  <!-- YouTube IFrame API (voor QR‑tests/video‑preview) -->
   <script src="https://www.youtube.com/iframe_api"></script>
-  <!-- html2pdf.js voor PDF-export -->
+  <!-- html2pdf.js voor PDF‑export -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
   <style>
-    body { background: #121212; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 20px; }
+    body { background: #121212; color: #fff; font-family: sans-serif; text-align: center; margin: 0; padding: 20px; }
     #mode-buttons { margin-bottom: 20px; }
     button { margin: 5px; padding: 12px 24px; font-size: 16px; background: #1db954; border: none; border-radius: 8px; color: white; cursor: pointer; }
     button:hover { background: #1ed760; }
@@ -34,20 +34,20 @@
     <button id="mode-playlist">Playlist</button>
   </div>
 
-  <!-- Scan QR -->
+  <!-- Scanner -->
   <section id="scanner-section">
     <h2>📷 Scan een YouTube QR‑code</h2>
-    <div id="qr-reader"></div>
+    <div id="qr-reader" style="width:100%;max-width:400px;margin:auto;"></div>
     <button id="start-scan">▶️ Start Scannen</button>
   </section>
 
-  <!-- Kies Categorie en genereer PDF -->
+  <!-- Categorieën (PDF maker) -->
   <section id="categories-section">
     <h2>🎵 Kies een categorie voor PDF‑kaartjes</h2>
     <div id="categories"></div>
   </section>
 
-  <!-- Plak Playlist URL -->
+  <!-- Playlist -->
   <section id="playlist-section">
     <h2>📋 Plak YouTube Playlist Link</h2>
     <input type="text" id="playlist-url" placeholder="https://www.youtube.com/playlist?list=..." />
