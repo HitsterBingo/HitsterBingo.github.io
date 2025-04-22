@@ -143,6 +143,7 @@
       if (isDouble) {
         for (let i = 0; i < items.length; i += 9) {
           const group = items.slice(i, i + 9);
+          if (group.length === 0) continue;
 
           const qrPage = document.createElement("div");
           qrPage.className = "page";
@@ -159,7 +160,7 @@
 
           const infoPage = document.createElement("div");
           infoPage.className = "page";
-          group.slice().reverse().forEach(item => {
+          group.forEach(item => {
             const infoCard = document.createElement("div");
             infoCard.className = "card";
             infoCard.innerHTML = `
