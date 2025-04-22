@@ -9,7 +9,6 @@ function onYouTubeIframeAPIReady() {
   });
 }
 
-console.log("script geladen!");
 // === 2. Modus‑toggle ===
 const btnScan     = document.getElementById('btn-scan'),
       btnCat      = document.getElementById('btn-cat'),
@@ -17,15 +16,17 @@ const btnScan     = document.getElementById('btn-scan'),
       secScan     = document.getElementById('scanner-section'),
       secCat      = document.getElementById('categories-section'),
       secPlaylist = document.getElementById('playlist-section');
+
 function hideAll() {
   secScan.style.display     = 'none';
   secCat.style.display      = 'none';
   secPlaylist.style.display = 'none';
 }
+
 btnScan.onclick     = () => { hideAll(); secScan.style.display     = 'block'; };
 btnCat.onclick      = () => { hideAll(); secCat.style.display      = 'block'; };
 btnPlaylist.onclick = () => { hideAll(); secPlaylist.style.display = 'block'; };
-// start in scan‑modus
+
 hideAll();
 secScan.style.display = 'block';
 
@@ -40,7 +41,7 @@ function startScan() {
   playBtn.style.display   = 'none';
   rescanBtn.style.display = 'none';
   startBtn.style.display  = 'inline-block';
-  if (html5QrCode) html5QrCode.stop().catch(()=>{});
+  if (html5QrCode) html5QrCode.stop().catch(() => {});
 
   Html5Qrcode.getCameras()
     .then(cams => {
@@ -69,9 +70,11 @@ function startScan() {
       alert('Kon camera niet starten.');
     });
 }
+
 startBtn.onclick  = startScan;
 rescanBtn.onclick = startScan;
-playBtn.onclick   = () => {
+
+playBtn.onclick = () => {
   if (lastVideoId && player) {
     player.loadVideoById(lastVideoId);
     player.playVideo();
@@ -108,7 +111,6 @@ function generatePdfForCategory(cat) {
   container.className = 'print-area';
 
   items.forEach(item => {
-    // voorkant
     const front = document.createElement('div');
     front.className = 'card card-front';
     const img = document.createElement('img');
@@ -117,7 +119,6 @@ function generatePdfForCategory(cat) {
     front.appendChild(img);
     front.appendChild(document.createTextNode('Scan mij!'));
 
-    // achterkant
     const back = document.createElement('div');
     back.className = 'card card-back';
     back.innerHTML = `
@@ -158,4 +159,3 @@ document.getElementById('load-playlist').onclick = () => {
     alert('Ongeldige playlist-URL');
   }
 };
-
