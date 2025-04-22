@@ -6,7 +6,13 @@ function onYouTubeIframeAPIReady() {
     height: '1',
     width: '1',
     videoId: '',
-    playerVars: { autoplay: 0, controls: 1, rel: 0, modestbranding: 1 }
+    playerVars: {
+      autoplay: 0,
+      controls: 1,
+      rel: 0,
+      modestbranding: 1,
+      playsinline: 1
+    }
   });
 }
 
@@ -21,35 +27,40 @@ function startScan() {
   rescanBtn.style.display = 'none';
   startBtn.style.display  = 'inline-block';
 
-  if (html5QrCode) html5QrCode.stop().catch(() => {});
+  // Stop vorige scanner als die nog draait
+  if (html5QrCode && html5QrCode._isScanning) {
+    html5QrCode.stop().catch(() => {});
+  }
 
-  Html5Qrcode.getCameras()
-    .then(cams => {
-      const cfg = cams[0]
-        ? { deviceId: { exact: cams[0].id } }
-        : { facingMode: 'environment' };
+  // Gebruik de achtercamera
+  const config = {
+    fps: 10,
+    qrbox: 250
+  };
 
-      html5QrCode = new Html5Qrcode('qr-reader');
-      return html5QrCode.start(
-        cfg,
-        { fps: 10 },
-        decoded => {
-          const vid = new URL(decoded).searchParams.get('v');
-          if (vid) {
-            lastVideoId = vid;
-            html5QrCode.stop();
-            startBtn.style.display  = 'none';
-            playBtn.style.display   = 'inline-block';
-            rescanBtn.style.display = 'inline-block';
-          }
-        },
-        err => console.warn('Scan error', err)
-      );
-    })
-    .catch(e => {
-      console.error(e);
-      alert('Kon camera niet starten.');
-    });
+  html5QrCode = new Html5Qrcode('qr-reader');
+  html5QrCode.start(
+    { facingMode: "environment" },
+    config,
+    (decodedText) => {
+      const url = new URL(decodedText);
+      const videoId = url.searchParams.get("v");
+      if (videoId) {
+        lastVideoId = videoId;
+        html5QrCode.stop().then(() => {
+          startBtn.style.display  = 'none';
+          playBtn.style.display   = 'inline-block';
+          rescanBtn.style.display = 'inline-block';
+        });
+      }
+    },
+    (error) => {
+      console.warn("Scanfout:", error);
+    }
+  ).catch((err) => {
+    console.error("Start scanner mislukt:", err);
+    alert("Kon camera niet starten.");
+  });
 }
 
 startBtn.onclick  = startScan;
