@@ -30,20 +30,20 @@ secScan.style.display = 'block';
 
 // === 3. QR‑scanner + Play/Rescan ===
 let html5QrCode, lastVideoId = null;
-const startBtn = document.getElementById('start-scan'),
-      playBtn  = document.getElementById('play-video'),
-      rescanBtn= document.getElementById('rescan');
+const startBtn  = document.getElementById('start-scan'),
+      playBtn   = document.getElementById('play-video'),
+      rescanBtn = document.getElementById('rescan');
 
 function startScan() {
   lastVideoId = null;
-  playBtn.style.display = 'none';
+  playBtn.style.display   = 'none';
   rescanBtn.style.display = 'none';
-  startBtn.style.display = 'inline-block';
+  startBtn.style.display  = 'inline-block';
   if (html5QrCode) html5QrCode.stop().catch(()=>{});
 
   Html5Qrcode.getCameras()
     .then(cams => {
-      const cfg = cams.length
+      const cfg = cams[0]
         ? { deviceId: { exact: cams[0].id } }
         : { facingMode: 'environment' };
       html5QrCode = new Html5Qrcode('qr-reader');
@@ -55,9 +55,9 @@ function startScan() {
           if (vid) {
             lastVideoId = vid;
             html5QrCode.stop();
-            startBtn.style.display = 'none';
-            playBtn.style.display  = 'inline-block';
-            rescanBtn.style.display= 'inline-block';
+            startBtn.style.display  = 'none';
+            playBtn.style.display   = 'inline-block';
+            rescanBtn.style.display = 'inline-block';
           }
         },
         err => console.warn('Scan error', err)
