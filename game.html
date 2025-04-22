@@ -49,7 +49,7 @@
   <div id="yt-container">
     <iframe id="yt-player" allow="autoplay" allowfullscreen></iframe>
   </div>
-  <button id="retry-btn" style="display:block;">🔄 Scan opnieuw</button>
+  <button id="retry-btn" style="display:none;">🔄 Scan opnieuw</button>
   <button id="switch-btn" style="display:block;">🔄 Draai camera</button>
 
   <script>
@@ -65,10 +65,10 @@
     // Start the QR scanner with the selected camera
     function startScanner(cameraIndex) {
       alreadyScanned = false;
-      retryBtn.style.display = "none";
-      container.style.display = "none";
+      retryBtn.style.display = "none"; // Hide retry button
+      container.style.display = "none"; // Hide video container
       player.src = ""; // Clear current video
-      switchBtn.style.display = "none";
+      switchBtn.style.display = "block"; // Show switch button
 
       Html5Qrcode.getCameras().then(camList => {
         cameras = camList;  // Save camera list
@@ -85,9 +85,9 @@
                 const videoId = new URL(decodedText).searchParams.get("v");
                 if (videoId) {
                   player.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0&showinfo=0&rel=0&modestbranding=1`;
-                  container.style.display = "block";
-                  retryBtn.style.display = "inline-block";
-                  switchBtn.style.display = "inline-block";
+                  container.style.display = "block"; // Show video container
+                  retryBtn.style.display = "inline-block"; // Show retry button
+                  switchBtn.style.display = "none"; // Hide switch button
                   html5QrCode.stop();
                 }
               }
