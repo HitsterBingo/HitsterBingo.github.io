@@ -13,12 +13,18 @@
       padding: 2rem;
     }
 
-    input {
+    input[type="text"] {
       width: 80%;
       max-width: 500px;
       padding: 12px;
       font-size: 16px;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
+    }
+
+    label {
+      display: block;
+      margin: 10px auto;
+      font-size: 16px;
     }
 
     button {
@@ -29,6 +35,7 @@
       border-radius: 8px;
       font-size: 16px;
       cursor: pointer;
+      margin-top: 10px;
     }
 
     .print-area {
@@ -47,9 +54,9 @@
       justify-content: center;
       align-items: center;
       position: relative;
-      margin: 20px auto;
-      page-break-after: always;
+      margin: 40px auto;
       box-sizing: border-box;
+      page-break-after: always;
     }
 
     .card-front img {
@@ -91,13 +98,14 @@
 <body>
   <h1>Playlist → Hitster Kaartjes</h1>
   <input type="text" id="playlist-url" placeholder="Plak hier een YouTube-playlist link...">
-  <br>
+  <label><input type="checkbox" id="double-sided"> Dubbelzijdig printen</label>
   <button onclick="genereerKaartjes()">🎵 Genereer kaartjes</button>
 
   <script>
     async function genereerKaartjes() {
       const url = document.getElementById("playlist-url").value.trim();
       const listId = new URL(url).searchParams.get("list");
+      const isDouble = document.getElementById("double-sided").checked;
       if (!listId) return alert("Geen geldige playlistlink.");
 
       const apiKey = 'AIzaSyAMZBCUGGm2ZW9Lv8eEvJJPzLN6lVYypMo';
@@ -129,26 +137,36 @@
       const container = document.createElement("div");
       container.className = "print-area";
 
-      items.slice(0, 50).forEach(item => {
-        // voorkant
-        const front = document.createElement("div");
-        front.className = "card card-front";
-        const qr = document.createElement("img");
-        qr.crossOrigin = "anonymous";
-        qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(item.url)}`;
-        front.appendChild(qr);
-        container.appendChild(front);
+      if (isDouble) {
+        items.slice(0, 50).forEach(item => {
+          const front = document.createElement("div");
+          front.className = "card card-front";
+          const qr = document.createElement("img");
+          qr.crossOrigin = "anonymous";
+          qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(item.url)}`;
+          front.appendChild(qr);
+          container.appendChild(front);
 
-        // achterkant
-        const back = document.createElement("div");
-        back.className = "card card-back";
-        back.innerHTML = `
-          <div class="artist">${item.artist}</div>
-          <div class="release">${item.release}</div>
-          <div class="title">${item.title}</div>
-        `;
-        container.appendChild(back);
-      });
+          const back = document.createElement("div");
+          back.className = "card card-back";
+          back.innerHTML = `
+            <div class="artist">${item.artist}</div>
+            <div class="release">${item.release}</div>
+            <div class="title">${item.title}</div>
+          `;
+          container.appendChild(back);
+        });
+      } else {
+        items.slice(0, 50).forEach(item => {
+          const front = document.createElement("div");
+          front.className = "card card-front";
+          const qr = document.createElement("img");
+          qr.crossOrigin = "anonymous";
+          qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(item.url)}`;
+          front.appendChild(qr);
+          container.appendChild(front);
+        });
+      }
 
       document.body.appendChild(container);
 
@@ -165,7 +183,7 @@
           })
           .from(container)
           .save()
-          .then(() => container.remove());
+          .then(() => console.log("✅ PDF gegenereerd!"));
       });
     }
   </script>
