@@ -33,7 +33,7 @@
       left: -9999px;
     }
 
-    iframe {
+    #player {
       width: 100%;
       height: 315px;
       border: none;
@@ -58,29 +58,53 @@
 <body>
   <h1>Scan een QR-code 🎶</h1>
   <div id="qr-reader"></div>
-  <div id="yt-container"></div>
+  <div id="yt-container">
+    <div id="player"></div>
+  </div>
 
   <button id="start-btn">▶️ Start Hitster Scan</button>
   <button id="retry-btn" style="display:none;">🔄 Scan opnieuw</button>
 
+  <script src="https://www.youtube.com/iframe_api"></script>
   <script>
-    const html5QrCode = new Html5Qrcode("qr-reader");
-    const ytContainer = document.getElementById("yt-container");
+    let html5QrCode = new Html5Qrcode("qr-reader");
+    let player;
+    let alreadyScanned = false;
+    let lastVideoId = "";
     const retryBtn = document.getElementById("retry-btn");
     const startBtn = document.getElementById("start-btn");
-    let alreadyScanned = false;
 
-    async function startScannerWithFacingMode(facingMode) {
+    // Create the YouTube player
+    function onYouTubeIframeAPIReady() {
+      player = new YT.Player('player', {
+        height: '1',
+        width: '1',
+        videoId: '',
+        playerVars: {
+          autoplay: 0,
+          controls: 0,
+          rel: 0,
+          modestbranding: 1,
+          playsinline: 1
+        },
+        events: {
+          onReady: (event) => {
+            // Nothing yet
+          }
+        }
+      });
+    }
+
+    // Start QR scanning
+    async function startScanner() {
       alreadyScanned = false;
       retryBtn.style.display = "none";
-      ytContainer.innerHTML = "";
-
       if (html5QrCode._isScanning) {
         await html5QrCode.stop();
       }
 
       html5QrCode.start(
-        { facingMode: facingMode },
+        { facingMode: "environment" },
         { fps: 10, qrbox: 250 },
         async (decodedText) => {
           if (alreadyScanned) return;
@@ -89,11 +113,8 @@
             const videoId = new URL(decodedText).searchParams.get("v");
             if (videoId) {
               await html5QrCode.stop();
-              const iframe = document.createElement("iframe");
-              iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0&rel=0&modestbranding=1&playsinline=1`;
-              iframe.allow = "autoplay";
-              iframe.allowFullscreen = true;
-              ytContainer.appendChild(iframe);
+              lastVideoId = videoId;
+              player.loadVideoById(videoId); // load and play video
               retryBtn.style.display = "inline-block";
             }
           }
@@ -107,13 +128,15 @@
       });
     }
 
-    retryBtn.addEventListener("click", () => {
-      startScannerWithFacingMode("environment");
+    // Start button clicked
+    startBtn.addEventListener("click", () => {
+      startScanner();
+      startBtn.style.display = "none";
     });
 
-    startBtn.addEventListener("click", () => {
-      startScannerWithFacingMode("environment");
-      startBtn.style.display = "none";
+    // Retry button
+    retryBtn.addEventListener("click", () => {
+      startScanner();
     });
   </script>
 </body>
