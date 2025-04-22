@@ -157,4 +157,4 @@ document.getElementById('load-playlist').onclick = () => {
     alert('Ongeldige playlist-URL');
   }
 }
-};
+}
