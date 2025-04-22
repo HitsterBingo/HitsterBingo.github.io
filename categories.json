@@ -1,22 +1,25 @@
 {
   "Pop": [
     {
-      "url": "https://www.youtube.com/watch?v=jofNR_WkoCE",
-      "title": "Don’t Start Now",
+      "title": "Levitating",
       "artist": "Dua Lipa",
-      "release": "October, 2019"
+      "release": "Maart 2021",
+      "url": "https://www.youtube.com/watch?v=TUVcZfQe-Kw"
     },
     {
-      "url": "https://www.youtube.com/watch?v=3AtDnEC4zak",
-      "title": "Blinding Lights",
-      "artist": "The Weeknd",
-      "release": "November, 2019"
-    },
+      "title": "As It Was",
+      "artist": "Harry Styles",
+      "release": "April 2022",
+      "url": "https://www.youtube.com/watch?v=H5v3kku4y6Q"
+    }
+    // Voeg hier tot 50 toe
+  ],
+  "Jaren 90": [
     {
-      "url": "https://www.youtube.com/watch?v=JGwWNGJdvx8",
-      "title": "Shape of You",
-      "artist": "Ed Sheeran",
-      "release": "January, 2017"
+      "title": "No Scrubs",
+      "artist": "TLC",
+      "release": "Maart 1999",
+      "url": "https://www.youtube.com/watch?v=FrLequ6dUdM"
     }
   ]
 }
