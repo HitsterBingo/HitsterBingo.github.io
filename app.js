@@ -9,6 +9,7 @@ function onYouTubeIframeAPIReady() {
   });
 }
 
+console.log("script geladen!");
 // === 2. Modus‑toggle ===
 const btnScan     = document.getElementById('btn-scan'),
       btnCat      = document.getElementById('btn-cat'),
