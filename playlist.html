@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Hitster Playlist naar Kaartjes</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
@@ -49,7 +49,7 @@
     .page {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-     grid-template-rows: repeat(4, 1fr);
+      grid-template-rows: repeat(3, 1fr);
       gap: 20px;
       page-break-after: always;
     }
@@ -67,8 +67,8 @@
       justify-content: center;
       align-items: center;
       flex-direction: column;
-      position: relative;
       box-sizing: border-box;
+      padding: 10px;
     }
 
     .card img {
@@ -99,18 +99,38 @@
 </head>
 <body>
   <h1>Playlist → Hitster Kaartjes</h1>
-  <input type="text" id="playlist-url" placeholder="Plak hier een YouTube-playlist link...">
-  <label><input type="checkbox" id="double-sided"> Dubbelzijdig printen</label>
+  <input type="text" id="playlist-url" placeholder="Plak hier een YouTube-playlist link..." />
+  <label><input type="checkbox" id="double-sided" /> Dubbelzijdig printen</label>
   <button onclick="genereerKaartjes()">🎵 Genereer kaartjes</button>
 
   <script>
+    const apiKey = 'AIzaSyAMZBCUGGm2ZW9Lv8eEvJJPzLN6lVYypMo'; // ← jouw API key
+
+    async function fetchReleaseDate(title, artist) {
+      const query = `recording:"${title}" AND artist:"${artist}"`;
+      const url = `https://musicbrainz.org/ws/2/recording/?query=${encodeURIComponent(query)}&fmt=json&limit=1`;
+      try {
+        const res = await fetch(url, {
+          headers: {
+            'User-Agent': 'HitsterKaartjes/1.0 (example@example.com)'
+          }
+        });
+        const data = await res.json();
+        if (data.recordings?.[0]?.releases?.[0]?.date) {
+          return data.recordings[0].releases[0].date;
+        }
+      } catch (err) {
+        console.warn("Release info niet gevonden:", err);
+      }
+      return null;
+    }
+
     async function genereerKaartjes() {
       const url = document.getElementById("playlist-url").value.trim();
       const listId = new URL(url).searchParams.get("list");
       const isDouble = document.getElementById("double-sided").checked;
       if (!listId) return alert("Geen geldige playlistlink.");
 
-      const apiKey = 'AIzaSyAMZBCUGGm2ZW9Lv8eEvJJPzLN6lVYypMo';
       const items = [];
       let nextPageToken = '';
 
@@ -118,19 +138,23 @@
         const apiUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${listId}&key=${apiKey}&pageToken=${nextPageToken}`;
         const res = await fetch(apiUrl);
         const data = await res.json();
-        if (!data.items || data.items.length === 0) break;
+        if (!data.items?.length) break;
 
-        data.items.forEach(item => {
-          if (!item.snippet || !item.snippet.resourceId) return;
+        for (const item of data.items) {
           const title = item.snippet.title;
           const rawArtist = item.snippet.videoOwnerChannelTitle || item.snippet.channelTitle || "Onbekend";
           const artist = rawArtist.replace(/vevo/gi, '').trim();
-          const publishedAt = new Date(item.snippet.publishedAt);
-          const maandJaar = publishedAt.toLocaleString('nl-NL', { month: 'long', year: 'numeric' });
           const videoId = item.snippet.resourceId.videoId;
           const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-          items.push({ title, artist, release: maandJaar, url: videoUrl });
-        });
+
+          let release = await fetchReleaseDate(title, artist);
+          if (!release) {
+            const publishedAt = new Date(item.snippet.publishedAt);
+            release = publishedAt.toLocaleString('nl-NL', { month: 'long', year: 'numeric' });
+          }
+
+          items.push({ title, artist, release, url: videoUrl });
+        }
 
         nextPageToken = data.nextPageToken || null;
       }
@@ -143,24 +167,23 @@
       const container = document.createElement("div");
       container.className = "print-area";
 
-      if (isDouble) {
-        for (let i = 0; i < items.length; i += 9) {
-          const group = items.slice(i, i + 9);
-          if (group.length === 0) continue;
+      for (let i = 0; i < items.length; i += 9) {
+        const group = items.slice(i, i + 9);
 
-          const qrPage = document.createElement("div");
-          qrPage.className = "page";
-          group.forEach(item => {
-            const qrCard = document.createElement("div");
-            qrCard.className = "card";
-            const qr = document.createElement("img");
-            qr.crossOrigin = "anonymous";
-            qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(item.url)}`;
-            qrCard.appendChild(qr);
-            qrPage.appendChild(qrCard);
-          });
-          container.appendChild(qrPage);
+        const qrPage = document.createElement("div");
+        qrPage.className = "page";
+        group.forEach(item => {
+          const qrCard = document.createElement("div");
+          qrCard.className = "card";
+          const qr = document.createElement("img");
+          qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(item.url)}`;
+          qr.crossOrigin = "anonymous";
+          qrCard.appendChild(qr);
+          qrPage.appendChild(qrCard);
+        });
+        container.appendChild(qrPage);
 
+        if (isDouble) {
           const infoPage = document.createElement("div");
           infoPage.className = "page reverse";
           group.forEach(item => {
@@ -174,21 +197,8 @@
             infoPage.appendChild(infoCard);
           });
           container.appendChild(infoPage);
-        }
-      } else {
-        for (let i = 0; i < items.length; i += 9) {
-          const group = items.slice(i, i + 9);
-          const page = document.createElement("div");
-          page.className = "page";
+        } else {
           group.forEach(item => {
-            const qrCard = document.createElement("div");
-            qrCard.className = "card";
-            const qr = document.createElement("img");
-            qr.crossOrigin = "anonymous";
-            qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(item.url)}`;
-            qrCard.appendChild(qr);
-            page.appendChild(qrCard);
-
             const infoCard = document.createElement("div");
             infoCard.className = "card";
             infoCard.innerHTML = `
@@ -196,9 +206,8 @@
               <div class="release">${item.release}</div>
               <div class="title">${item.title}</div>
             `;
-            page.appendChild(infoCard);
+            qrPage.appendChild(infoCard);
           });
-          container.appendChild(page);
         }
       }
 
@@ -209,16 +218,12 @@
         img.complete ? Promise.resolve() : new Promise(res => img.onload = res)
       )).then(() => {
         setTimeout(() => {
-          html2pdf()
-            .set({
-              filename: `playlist-kaartjes.pdf`,
-              margin: [10, 10, 10, 10],
-              html2canvas: { scale: 2, useCORS: true },
-              jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            })
-            .from(container)
-            .save()
-            .then(() => console.log("✅ PDF succesvol gegenereerd!"));
+          html2pdf().set({
+            filename: "playlist-kaartjes.pdf",
+            margin: [10, 10, 10, 10],
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+          }).from(container).save();
         }, 500);
       });
     }
