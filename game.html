@@ -62,19 +62,21 @@
     <div id="player"></div>
   </div>
 
-  <button id="start-btn">▶️ Start Hitster Scan</button>
+  <button id="start-btn">▶️ Scan een QR-code</button>
+  <button id="play-btn" style="display:none;">🎵 Speel muziek</button>
   <button id="retry-btn" style="display:none;">🔄 Scan opnieuw</button>
 
   <script src="https://www.youtube.com/iframe_api"></script>
   <script>
     let html5QrCode = new Html5Qrcode("qr-reader");
     let player;
+    let videoId = "";
     let alreadyScanned = false;
-    let lastVideoId = "";
     const retryBtn = document.getElementById("retry-btn");
     const startBtn = document.getElementById("start-btn");
+    const playBtn = document.getElementById("play-btn");
 
-    // Create the YouTube player
+    // Maak de YouTube-speler
     function onYouTubeIframeAPIReady() {
       player = new YT.Player('player', {
         height: '1',
@@ -86,19 +88,15 @@
           rel: 0,
           modestbranding: 1,
           playsinline: 1
-        },
-        events: {
-          onReady: (event) => {
-            // Nothing yet
-          }
         }
       });
     }
 
-    // Start QR scanning
+    // Start QR scannen
     async function startScanner() {
       alreadyScanned = false;
       retryBtn.style.display = "none";
+      playBtn.style.display = "none";
       if (html5QrCode._isScanning) {
         await html5QrCode.stop();
       }
@@ -110,12 +108,12 @@
           if (alreadyScanned) return;
           if (decodedText.includes("youtube.com/watch?v=")) {
             alreadyScanned = true;
-            const videoId = new URL(decodedText).searchParams.get("v");
+            videoId = new URL(decodedText).searchParams.get("v");
             if (videoId) {
               await html5QrCode.stop();
-              lastVideoId = videoId;
-              player.loadVideoById(videoId); // load and play video
               retryBtn.style.display = "inline-block";
+              playBtn.style.display = "inline-block";
+              startBtn.style.display = "none"; // Verberg de startknop
             }
           }
         },
@@ -128,15 +126,22 @@
       });
     }
 
-    // Start button clicked
+    // Startknop klikken om scan te starten
     startBtn.addEventListener("click", () => {
       startScanner();
-      startBtn.style.display = "none";
     });
 
-    // Retry button
+    // Retry-knop om opnieuw te scannen
     retryBtn.addEventListener("click", () => {
       startScanner();
+    });
+
+    // Play-knop om de video af te spelen
+    playBtn.addEventListener("click", () => {
+      if (videoId) {
+        player.loadVideoById(videoId); // Laad de video
+        player.playVideo(); // Speel af
+      }
     });
   </script>
 </body>
