@@ -28,7 +28,7 @@ function stopVideoIfPlaying() {
 }
 
 function startScan() {
-  stopVideoIfPlaying(); // ⛔ Stop YouTube als opnieuw gescand wordt
+  stopVideoIfPlaying(); // 🛑 Stop muziek bij opnieuw scannen
   lastVideoId = null;
 
   playBtn.style.display   = 'none';
@@ -44,8 +44,8 @@ function startScan() {
     qrbox: 250
   };
 
-  // 👉 Gebruik FRONT camera (bijv. OBS Virtual Cam)
-  const cameraConfig = { { facingMode: "environment" } };
+  // ✅ Achtercamera (standaard voor telefoons)
+  const cameraConfig = { facingMode: "environment" };
 
   html5QrCode = new Html5Qrcode('qr-reader');
   html5QrCode.start(
