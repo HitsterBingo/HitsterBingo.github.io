@@ -1,169 +1,57 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>Hitster QR Scanner</title>
+  <title>Hitster Game</title>
   <script src="https://unpkg.com/html5-qrcode"></script>
+  <script src="https://www.youtube.com/iframe_api"></script>
   <style>
-    body {
-      background-color: #121212;
-      color: white;
-      font-family: sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
-      padding: 20px;
-      text-align: center;
-      overflow: hidden;
-    }
-
-    #qr-reader {
-      width: 300px;
-      margin-bottom: 20px;
-    }
-
-    #yt-container {
-      display: block;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
-      position: absolute;
-      left: -9999px;
-    }
-
-    #player {
-      width: 100%;
-      height: 315px;
-      border: none;
-    }
-
-    button {
-      margin: 10px;
-      padding: 15px 30px;
-      font-size: 18px;
-      background-color: #1db954;
-      border: none;
-      border-radius: 8px;
-      color: white;
-      cursor: pointer;
-      width: 80%; /* Zorgt ervoor dat de knoppen breder zijn */
-      max-width: 400px; /* Max breedte van de knoppen */
-    }
-
-    button:hover {
-      background-color: #1ed760;
-    }
-
-    @media (max-width: 600px) {
-      button {
-        font-size: 16px;
-        padding: 12px 24px;
-        width: 90%;
-      }
-    }
-
-    h1 {
-      font-size: 24px;
-      margin-bottom: 20px;
-    }
+    body { background: #121212; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 20px; }
+    #mode-buttons { margin-bottom: 20px; }
+    button { margin: 5px; padding: 12px 24px; font-size: 16px; background: #1db954; border: none; border-radius: 8px; color: white; cursor: pointer; }
+    button:hover { background: #1ed760; }
+    #qr-reader { width: 300px; margin: 20px auto; }
+    #player { width: 100%; max-width: 560px; height: 315px; margin: 20px auto; }
+    #categories-section, #playlist-section { display: none; }
+    .cat-btn { width: 120px; }
+    .track-item { margin: 10px 0; }
+    .info { margin-top: 8px; }
+    #playlist-url { width: 80%; padding: 8px; margin: 10px 0; border-radius: 4px; border: none; }
   </style>
 </head>
 <body>
-  <h1>Scan een QR-code 🎶</h1>
-  <div id="qr-reader"></div>
-  <div id="yt-container">
-    <div id="player"></div>
+  <h1>Hitster Game</h1>
+  <div id="mode-buttons">
+    <button id="mode-scan">Scan QR</button>
+    <button id="mode-cat">Categorieën</button>
+    <button id="mode-playlist">Playlist</button>
   </div>
 
-  <button id="start-btn">▶️ Scan een QR-code</button>
-  <button id="play-btn" style="display:none;">🎵 Speel muziek</button>
-  <button id="retry-btn" style="display:none;">🔄 Scan opnieuw</button>
+  <!-- QR Scanner Section -->
+  <section id="scanner-section">
+    <h2>📷 Scan een YouTube QR-code</h2>
+    <div id="qr-reader"></div>
+    <button id="start-scan">▶️ Start Scannen</button>
+  </section>
 
-  <script src="https://www.youtube.com/iframe_api"></script>
-  <script>
-    let html5QrCode = new Html5Qrcode("qr-reader");
-    let player;
-    let videoId = "";
-    let alreadyScanned = false;
-    const retryBtn = document.getElementById("retry-btn");
-    const startBtn = document.getElementById("start-btn");
-    const playBtn = document.getElementById("play-btn");
+  <!-- Categories Section -->
+  <section id="categories-section">
+    <h2>🎵 Kies een categorie</h2>
+    <div id="categories"></div>
+    <div id="tracks-container"></div>
+  </section>
 
-    // Maak de YouTube-speler
-    function onYouTubeIframeAPIReady() {
-      player = new YT.Player('player', {
-        height: '1',
-        width: '1',
-        videoId: '',
-        playerVars: {
-          autoplay: 0,
-          controls: 0,
-          rel: 0,
-          modestbranding: 1,
-          playsinline: 1
-        }
-      });
-    }
+  <!-- Playlist Section -->
+  <section id="playlist-section">
+    <h2>📋 Plak YouTube Playlist Link</h2>
+    <input type="text" id="playlist-url" placeholder="https://www.youtube.com/playlist?list=..." />
+    <button id="load-playlist">▶️ Laad Playlist</button>
+  </section>
 
-    // Start QR scannen
-    async function startScanner() {
-      alreadyScanned = false;
-      retryBtn.style.display = "none";
-      playBtn.style.display = "none";
-      if (html5QrCode._isScanning) {
-        await html5QrCode.stop();
-      }
+  <!-- YouTube Player -->
+  <div id="player"></div>
 
-      html5QrCode.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: 250 },
-        async (decodedText) => {
-          if (alreadyScanned) return;
-          if (decodedText.includes("youtube.com/watch?v=")) {
-            alreadyScanned = true;
-            videoId = new URL(decodedText).searchParams.get("v");
-            if (videoId) {
-              await html5QrCode.stop();
-              retryBtn.style.display = "inline-block";
-              playBtn.style.display = "inline-block";
-              startBtn.style.display = "none"; // Verberg de startknop
-            }
-          }
-        },
-        (err) => {
-          console.warn("Scan fout:", err);
-        }
-      ).catch(err => {
-        console.error("Camera start fout:", err);
-        alert("Camera starten mislukt.");
-      });
-    }
-
-    // Startknop klikken om scan te starten
-    startBtn.addEventListener("click", () => {
-      startScanner();
-    });
-
-    // Retry-knop om opnieuw te scannen
-    retryBtn.addEventListener("click", () => {
-      if (player) {
-        player.stopVideo(); // Stop de video
-      }
-      playBtn.style.display = "inline-block";
-      startScanner(); // Start opnieuw scannen
-    });
-
-    // Play-knop om de video af te spelen
-    playBtn.addEventListener("click", () => {
-      if (videoId) {
-        player.loadVideoById(videoId); // Laad de video
-        player.playVideo(); // Speel af
-        playBtn.style.display = "none";
-      }
-    });
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>
