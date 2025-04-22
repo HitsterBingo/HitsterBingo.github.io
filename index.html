@@ -3,56 +3,55 @@
 <head>
   <meta charset="UTF-8" />
   <title>Hitster Game</title>
-  <!-- QR‑scanner -->
+  <!-- html2pdf.js voor PDF-export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+  <!-- html5-qrcode voor QR‑scannen -->
   <script src="https://unpkg.com/html5-qrcode"></script>
   <!-- YouTube IFrame API -->
   <script src="https://www.youtube.com/iframe_api"></script>
-  <!-- html2pdf.js voor PDF‑export -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
   <style>
-    body { background: #121212; color: #fff; font-family: sans-serif; text-align: center; margin: 0; padding: 20px }
-    #mode-buttons { margin-bottom: 20px; }
+    body { background: #121212; color: #fff; font-family: sans-serif; text-align: center; padding: 20px; }
     button { margin: 5px; padding: 12px 24px; font-size: 16px; background: #1db954; border: none; border-radius: 8px; color: #fff; cursor: pointer; }
     button:hover { background: #1ed760; }
-    section { display: none; }
+    section { display: none; margin-top: 20px; }
     .print-area { display: flex; flex-wrap: wrap; justify-content: center; }
-    .card { background: #1e1e1e; border: 2px solid #1db954; border-radius: 12px; width: 180px; height: 260px; margin: 10px; padding: 10px; box-sizing: border-box; page-break-inside: avoid; }
+    .card { background: #1e1e1e; border: 2px solid #1db954; border-radius: 8px; width: 180px; height: 260px; margin: 10px; padding: 10px; box-sizing: border-box; page-break-inside: avoid; }
     .card-front, .card-back { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
-    .card-front img { width: 120px; height: 120px; margin-bottom: 10px; }
-    .card-back .title  { font-weight: bold; font-size: 14px; margin-bottom: 6px; }
-    .card-back .artist { font-size: 12px; margin-bottom: 4px; }
-    .card-back .release{ font-size: 11px; color: #aaa; }
-    #playlist-url { width: 80%; padding: 8px; margin: 10px 0; border-radius: 4px; border: none; }
-    /* verplaats player off‑screen i.p.v. display:none */
+    .card-front img { width: 120px; height: 120px; margin-bottom: 8px; }
+    .card-back .title  { font-weight: bold; margin-bottom: 4px; }
+    .card-back .artist { font-size: 14px; margin-bottom: 4px; }
+    .card-back .release{ font-size: 12px; color: #aaa; }
     #player { position: absolute; left: -9999px; width: 1px; height: 1px; }
+    #playlist-url { width: 80%; padding: 8px; margin: 10px 0; border-radius: 4px; border: none; }
   </style>
 </head>
 <body>
   <h1>Hitster Game</h1>
-  <div id="mode-buttons">
-    <button id="mode-scan">Scan QR</button>
-    <button id="mode-cat">Categorieën</button>
-    <button id="mode-playlist">Playlist</button>
+  <div>
+    <button id="btn-scan">Scan QR</button>
+    <button id="btn-cat">Categorieën</button>
+    <button id="btn-playlist">Playlist</button>
   </div>
 
-  <!-- Scanner -->
+  <!-- QR Scanner -->
   <section id="scanner-section">
-    <h2>📷 Scan een YouTube QR‑code</h2>
-    <div id="qr-reader" style="width:100%;max-width:400px;margin:auto;"></div>
+    <h2>📷 QR‑code scannen</h2>
+    <div id="qr-reader" style="width:100%;max-width:360px;margin:auto;"></div>
     <button id="start-scan">▶️ Start Scannen</button>
     <button id="play-video" style="display:none;">▶️ Speel Video</button>
+    <button id="rescan" style="display:none;">🔄 Scan Opnieuw</button>
   </section>
 
-  <!-- Categorieën (PDF) -->
+  <!-- Categorieën (PDF maker) -->
   <section id="categories-section">
-    <h2>🎵 Kies een categorie voor PDF‑kaartjes</h2>
+    <h2>🎵 Kies een categorie</h2>
     <div id="categories"></div>
   </section>
 
-  <!-- Playlist -->
+  <!-- Playlist loader -->
   <section id="playlist-section">
-    <h2>📋 Plak YouTube Playlist Link</h2>
-    <input type="text" id="playlist-url" placeholder="https://www.youtube.com/playlist?list=..." />
+    <h2>📋 YouTube Playlist</h2>
+    <input id="playlist-url" placeholder="https://www.youtube.com/playlist?list=..." />
     <button id="load-playlist">▶️ Laad Playlist</button>
   </section>
 
