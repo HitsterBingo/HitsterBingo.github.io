@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Hitster Playlist naar Kaartjes</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    body {
+      background: #121212;
+      color: white;
+      font-family: sans-serif;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    input {
+      width: 80%;
+      max-width: 500px;
+      padding: 12px;
+      font-size: 16px;
+      margin-bottom: 20px;
+    }
+
+    button {
+      padding: 12px 24px;
+      background: #1db954;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .print-area {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      padding: 40px;
+    }
+
+    .card {
+      width: 180px;
+      height: 240px;
+      border: 1px solid #ccc;
+      page-break-inside: avoid;
+      background: white;
+      color: black;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+
+    .card-front img {
+      width: 120px;
+      height: 120px;
+    }
+
+    .card-back {
+      flex-direction: column;
+    }
+
+    .card-back .artist {
+      position: absolute;
+      top: 8px;
+      width: 100%;
+      text-align: center;
+      font-size: 14px;
+      font-weight: normal;
+    }
+
+    .card-back .release {
+      font-size: 20px;
+      font-weight: bold;
+      text-align: center;
+      margin: auto 0;
+    }
+
+    .card-back .title {
+      position: absolute;
+      bottom: 10px;
+      width: 100%;
+      text-align: center;
+      font-size: 16px;
+      font-style: italic;
+      transform: rotate(-5deg);
+    }
+  </style>
+</head>
+<body>
+  <h1>Playlist → Hitster Kaartjes</h1>
+  <input type="text" id="playlist-url" placeholder="Plak hier een YouTube-playlist link...">
+  <br>
+  <button onclick="genereerKaartjes()">🎵 Genereer kaartjes</button>
+
+  <script>
+    async function genereerKaartjes() {
+      const url = document.getElementById("playlist-url").value.trim();
+      const listId = new URL(url).searchParams.get("list");
+      if (!listId) return alert("Geen geldige playlistlink.");
+
+      // Simuleer opgehaalde video's (vervang dit later door echte API call)
+      const videos = Array.from({ length: 50 }, (_, i) => {
+        const maand = new Date(2023, i % 12, 1).toLocaleString('nl-NL', { month: 'long', year: 'numeric' });
+        return {
+          title: `Titel ${i + 1}`,
+          artist: `Kanaal ${i + 1}`,
+          release: maand,
+          url: `https://www.youtube.com/watch?v=video${i + 1}`
+        };
+      });
+
+      const container = document.createElement("div");
+      container.className = "print-area";
+
+      videos.forEach(item => {
+        // voorkant
+        const front = document.createElement("div");
+        front.className = "card card-front";
+        const qr = document.createElement("img");
+        qr.crossOrigin = "anonymous";
+        qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(item.url)}`;
+        front.appendChild(qr);
+        container.appendChild(front);
+
+        // achterkant
+        const back = document.createElement("div");
+        back.className = "card card-back";
+        back.innerHTML = `
+          <div class="artist">${item.artist}</div>
+          <div class="release">${item.release}</div>
+          <div class="title">${item.title}</div>
+        `;
+        container.appendChild(back);
+      });
+
+      document.body.appendChild(container);
+
+      const imgs = container.querySelectorAll("img");
+      Promise.all(Array.from(imgs).map(img =>
+        img.complete ? Promise.resolve() : new Promise(res => img.onload = res)
+      )).then(() => {
+        html2pdf()
+          .set({ filename: `playlist-kaartjes.pdf`, html2canvas: { scale: 2, useCORS: true } })
+          .from(container)
+          .save()
+          .then(() => container.remove());
+      });
+    }
+  </script>
+</body>
+</html>
