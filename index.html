@@ -1,15 +1,11 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Hitster QR Scanner</title>
-
-  <!-- QR-code scanner -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://unpkg.com/html5-qrcode"></script>
-
-  <!-- YouTube IFrame API -->
   <script src="https://www.youtube.com/iframe_api"></script>
-
   <style>
     body {
       background-color: #121212;
@@ -28,7 +24,7 @@
     #qr-reader {
       width: 100%;
       max-width: 360px;
-      margin-bottom: 20px;
+      margin: 20px 0;
     }
 
     #player {
@@ -67,18 +63,14 @@
 <body>
   <h1>Scan een QR-code 🎶</h1>
 
-  <!-- QR-code scanner -->
   <div id="qr-reader"></div>
 
-  <!-- Knoppen -->
   <button id="start-scan">▶️ Start Scannen</button>
   <button id="play-video" style="display:none;">▶️ Speel Video</button>
   <button id="rescan" style="display:none;">🔄 Scan Opnieuw</button>
 
-  <!-- Verborgen YouTube player -->
   <div id="player"></div>
 
-  <!-- Jouw script -->
   <script src="app.js"></script>
 </body>
 </html>
