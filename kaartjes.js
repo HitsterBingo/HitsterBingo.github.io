@@ -15,30 +15,25 @@ function generatePdf(cat, items) {
   container.className = "print-area";
 
   items.forEach(item => {
-    const card = document.createElement("div");
-    card.className = "card";
-
-    const artist = document.createElement("div");
-    artist.className = "artist";
-    artist.textContent = item.artist;
-
-    const release = document.createElement("div");
-    release.className = "release";
-    release.textContent = item.release;
+    // === VOORKANT ===
+    const front = document.createElement("div");
+    front.className = "card card-front";
 
     const qr = document.createElement("img");
     qr.crossOrigin = "anonymous";
     qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(item.url)}`;
+    front.appendChild(qr);
+    container.appendChild(front);
 
-    const title = document.createElement("div");
-    title.className = "title";
-    title.textContent = item.title;
-
-    card.appendChild(artist);
-    card.appendChild(release);
-    card.appendChild(qr);
-    card.appendChild(title);
-    container.appendChild(card);
+    // === ACHTERKANT ===
+    const back = document.createElement("div");
+    back.className = "card card-back";
+    back.innerHTML = `
+      <div class="artist">${item.artist}</div>
+      <div class="release">${item.release}</div>
+      <div class="title">${item.title}</div>
+    `;
+    container.appendChild(back);
   });
 
   document.body.appendChild(container);
@@ -54,3 +49,4 @@ function generatePdf(cat, items) {
       .then(() => container.remove());
   });
 }
+
