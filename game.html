@@ -28,6 +28,20 @@
       height: 0;
       border: none;
     }
+    #retry-btn, #switch-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #1db954;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      cursor: pointer;
+      display: none;
+    }
+    #retry-btn:hover, #switch-btn:hover {
+      background-color: #1ed760;
+    }
   </style>
 </head>
 <body>
@@ -36,45 +50,78 @@
   <div id="yt-container">
     <iframe id="yt-player" allow="autoplay" allowfullscreen></iframe>
   </div>
+  <button id="retry-btn">🔄 Scan opnieuw</button>
+  <button id="switch-btn">🔄 Draai camera</button>
 
   <script>
     const html5QrCode = new Html5Qrcode("qr-reader");
+    const player = document.getElementById("yt-player");
+    const container = document.getElementById("yt-container");
+    const retryBtn = document.getElementById("retry-btn");
+    const switchBtn = document.getElementById("switch-btn");
     let alreadyScanned = false;
+    let currentCameraIndex = 0;
+    let cameras = [];
 
-    Html5Qrcode.getCameras().then(cameras => {
-      if (cameras && cameras.length) {
-        const cam = cameras[0];
-        html5QrCode.start(
-          { deviceId: { exact: cam.id } },
-          { fps: 10, qrbox: 250 },
-          (decodedText) => {
-            if (alreadyScanned) return; // ⛔️ Stop als al gescand
-            console.log("Gescande QR:", decodedText);
+    // Start the QR scanner with the selected camera
+    function startScanner(cameraIndex) {
+      alreadyScanned = false;
+      retryBtn.style.display = "none";
+      container.style.display = "none";
+      player.src = ""; // Clear current video
+      switchBtn.style.display = "none";
 
-            if (decodedText.includes("youtube.com/watch?v=")) {
-              alreadyScanned = true; // ✅ Markeer als gescand
-              const videoId = new URL(decodedText).searchParams.get("v");
-
-              if (videoId) {
-                const player = document.getElementById("yt-player");
-                const container = document.getElementById("yt-container");
-                player.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0&showinfo=0&rel=0&modestbranding=1`;
-                container.style.display = "block";
-                html5QrCode.stop(); // 🛑 Stop scanner
+      Html5Qrcode.getCameras().then(camList => {
+        cameras = camList;  // Save camera list
+        if (cameras && cameras.length) {
+          const selectedCamera = cameras[cameraIndex];
+          html5QrCode.start(
+            { deviceId: { exact: selectedCamera.id } },
+            { fps: 10, qrbox: 250 },
+            (decodedText) => {
+              console.log("Gescanne tekst:", decodedText); // Debugging log
+              if (alreadyScanned) return;
+              if (decodedText.includes("youtube.com/watch?v=")) {
+                alreadyScanned = true;
+                const videoId = new URL(decodedText).searchParams.get("v");
+                if (videoId) {
+                  player.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0&showinfo=0&rel=0&modestbranding=1`;
+                  container.style.display = "block";
+                  retryBtn.style.display = "inline-block";
+                  switchBtn.style.display = "inline-block";
+                  html5QrCode.stop();
+                }
               }
+            },
+            (err) => {
+              console.warn("Scan fout:", err);
             }
-          },
-          (err) => {
-            console.warn("Scanfout:", err);
-          }
-        );
-      } else {
-        alert("Geen camera gevonden!");
-      }
-    }).catch(err => {
-      console.error("Camera error", err);
-      alert("Camera niet beschikbaar.");
+          );
+        } else {
+          alert("Geen camera gevonden!");
+        }
+      }).catch(err => {
+        console.error("Camera fout:", err);
+        alert("Camera niet beschikbaar.");
+      });
+    }
+
+    // Switch camera function
+    function switchCamera() {
+      currentCameraIndex = (currentCameraIndex + 1) % cameras.length; // Cycle through cameras
+      startScanner(currentCameraIndex); // Restart scanner with new camera
+    }
+
+    // Retry button functionality
+    retryBtn.addEventListener("click", () => {
+      startScanner(currentCameraIndex); // Retry scanning with the same camera
     });
+
+    // Switch button functionality
+    switchBtn.addEventListener("click", switchCamera);
+
+    // Start scanning with the first camera by default
+    startScanner(currentCameraIndex);
   </script>
 </body>
 </html>
