@@ -45,7 +45,7 @@ function startScan() {
   };
 
   // 👉 Gebruik FRONT camera (bijv. OBS Virtual Cam)
-  const cameraConfig = { facingMode: { exact: "user" } };
+  const cameraConfig = { { facingMode: "environment" } };
 
   html5QrCode = new Html5Qrcode('qr-reader');
   html5QrCode.start(
