@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Hitster QR Scanner</title>
-  <script src="https://unpkg.com/html5-qrcode"></script>
+  <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
   <style>
     body {
       background-color: #121212;
@@ -107,8 +107,12 @@
 
     // Switch camera function
     function switchCamera() {
-      currentCameraIndex = (currentCameraIndex + 1) % cameras.length; // Cycle through cameras
-      startScanner(currentCameraIndex); // Restart scanner with new camera
+      if (cameras.length > 1) {
+        currentCameraIndex = (currentCameraIndex + 1) % cameras.length; // Cycle through cameras
+        startScanner(currentCameraIndex); // Restart scanner with new camera
+      } else {
+        alert("Geen tweede camera gevonden!");
+      }
     }
 
     // Retry button functionality
