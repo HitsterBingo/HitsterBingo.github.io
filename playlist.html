@@ -101,13 +101,21 @@
   <h1>Playlist → Hitster Kaartjes</h1>
   <input type="text" id="playlist-url" placeholder="Plak hier een YouTube-playlist link..." />
   <label><input type="checkbox" id="double-sided" /> Dubbelzijdig printen</label>
-  <button onclick="genereerKaartjes()">🎵 Genereer kaartjes</button>
+  <button id="genereerBtn" onclick="genereerKaartjes()">🎵 Genereer kaartjes</button>
 
   <script>
     const apiKey = 'AIzaSyAMZBCUGGm2ZW9Lv8eEvJJPzLN6lVYypMo';
 
     function sleep(ms) {
       return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function cleanTitle(title) {
+      return title
+        .replace(/\(.*?\)|\[.*?\]/g, "")
+        .replace(/official|video|HD|4K|lyrics/gi, "")
+        .replace(/[^a-zA-Z0-9\s]/g, "")
+        .trim();
     }
 
     async function fetchReleaseDate(title, artist) {
@@ -124,12 +132,14 @@
           return data.recordings[0].releases[0].date;
         }
       } catch (err) {
-        console.warn("MusicBrainz faalt voor:", title, err);
+        console.warn("MusicBrainz error:", err);
       }
       return null;
     }
 
     async function genereerKaartjes() {
+      document.getElementById("genereerBtn").style.display = "none";
+
       const url = document.getElementById("playlist-url").value.trim();
       const listId = new URL(url).searchParams.get("list");
       const isDouble = document.getElementById("double-sided").checked;
@@ -145,7 +155,8 @@
         if (!data.items?.length) break;
 
         for (const item of data.items) {
-          const title = item.snippet.title;
+          const originalTitle = item.snippet.title;
+          const title = cleanTitle(originalTitle);
           const rawArtist = item.snippet.videoOwnerChannelTitle || item.snippet.channelTitle || "Onbekend";
           const artist = rawArtist.replace(/vevo/gi, '').trim();
           const videoId = item.snippet.resourceId.videoId;
@@ -153,9 +164,13 @@
 
           await sleep(1200);
           let release = null;
+          let source = "musicbrainz";
+
           try {
             release = await fetchReleaseDate(title, artist);
-          } catch { release = null; }
+          } catch {
+            release = null;
+          }
 
           if (release && /^\d{4}-\d{2}-\d{2}$/.test(release)) {
             const d = new Date(release);
@@ -163,9 +178,10 @@
           } else {
             const fallback = new Date(item.snippet.publishedAt);
             release = fallback.toLocaleString('nl-NL', { month: 'long', year: 'numeric' });
+            source = "yt";
           }
 
-          items.push({ title, artist, release, url: videoUrl });
+          items.push({ title: originalTitle, artist, release, url: videoUrl, source });
         }
 
         nextPageToken = data.nextPageToken || null;
@@ -203,7 +219,7 @@
             infoCard.className = "card";
             infoCard.innerHTML = `
               <div class="artist">${item.artist}</div>
-              <div class="release">${item.release}</div>
+              <div class="release">${item.release} ${item.source === "yt" ? "(YT)" : ""}</div>
               <div class="title">${item.title}</div>
             `;
             infoPage.appendChild(infoCard);
@@ -215,7 +231,7 @@
             infoCard.className = "card";
             infoCard.innerHTML = `
               <div class="artist">${item.artist}</div>
-              <div class="release">${item.release}</div>
+              <div class="release">${item.release} ${item.source === "yt" ? "(YT)" : ""}</div>
               <div class="title">${item.title}</div>
             `;
             qrPage.appendChild(infoCard);
