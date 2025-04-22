@@ -48,7 +48,8 @@
 
     .page {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      grid-template-columns: repeat(3, 1fr);
+      grid-auto-rows: 1fr;
       gap: 20px;
       page-break-after: always;
     }
@@ -140,65 +141,71 @@
       container.className = "print-area";
 
       if (isDouble) {
-        const frontPage = document.createElement("div");
-        frontPage.className = "page";
-        const backPage = document.createElement("div");
-        backPage.className = "page";
+        const qrPage = document.createElement("div");
+        qrPage.className = "page";
+        const infoPage = document.createElement("div");
+        infoPage.className = "page";
 
-        items.forEach(item => {
-          const front = document.createElement("div");
-          front.className = "card";
+        items.forEach((item, index) => {
+          const qrCard = document.createElement("div");
+          qrCard.className = "card";
           const qr = document.createElement("img");
           qr.crossOrigin = "anonymous";
           qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(item.url)}`;
-          front.appendChild(qr);
-          frontPage.appendChild(front);
+          qrCard.appendChild(qr);
+          qrPage.appendChild(qrCard);
 
-          const back = document.createElement("div");
-          back.className = "card";
-          back.innerHTML = `
+          const infoCard = document.createElement("div");
+          infoCard.className = "card";
+          infoCard.innerHTML = `
             <div class="artist">${item.artist}</div>
             <div class="release">${item.release}</div>
             <div class="title">${item.title}</div>
           `;
-          backPage.appendChild(back);
+          infoPage.appendChild(infoCard);
+
+          if ((index + 1) % 9 === 0) {
+            container.appendChild(qrPage.cloneNode(true));
+            container.appendChild(infoPage.cloneNode(true));
+            qrPage.innerHTML = '';
+            infoPage.innerHTML = '';
+          }
         });
 
-        container.appendChild(frontPage);
-        container.appendChild(backPage);
+        if (qrPage.childNodes.length) {
+          container.appendChild(qrPage);
+          container.appendChild(infoPage);
+        }
 
       } else {
-        const singlePage = document.createElement("div");
-        singlePage.className = "page";
-
-        items.forEach(item => {
-          const card = document.createElement("div");
-          card.className = "card";
-
+        let page = document.createElement("div");
+        page.className = "page";
+        items.forEach((item, index) => {
+          const qrCard = document.createElement("div");
+          qrCard.className = "card";
           const qr = document.createElement("img");
           qr.crossOrigin = "anonymous";
           qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(item.url)}`;
-          card.appendChild(qr);
+          qrCard.appendChild(qr);
+          page.appendChild(qrCard);
 
-          const artist = document.createElement("div");
-          artist.className = "artist";
-          artist.textContent = item.artist;
-          card.appendChild(artist);
+          const infoCard = document.createElement("div");
+          infoCard.className = "card";
+          infoCard.innerHTML = `
+            <div class="artist">${item.artist}</div>
+            <div class="release">${item.release}</div>
+            <div class="title">${item.title}</div>
+          `;
+          page.appendChild(infoCard);
 
-          const release = document.createElement("div");
-          release.className = "release";
-          release.textContent = item.release;
-          card.appendChild(release);
-
-          const title = document.createElement("div");
-          title.className = "title";
-          title.textContent = item.title;
-          card.appendChild(title);
-
-          singlePage.appendChild(card);
+          if ((index + 1) % 4 === 0) {
+            container.appendChild(page);
+            page = document.createElement("div");
+            page.className = "page";
+          }
         });
 
-        container.appendChild(singlePage);
+        if (page.childNodes.length) container.appendChild(page);
       }
 
       document.body.appendChild(container);
