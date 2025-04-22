@@ -43,8 +43,7 @@
       margin: 20px auto;
       max-width: 1000px;
       background: white;
-      z-index: 9999;
-      position: relative;
+      color: black;
     }
 
     .card {
@@ -57,9 +56,9 @@
       justify-content: center;
       align-items: center;
       position: relative;
-      margin: 40px auto;
+      margin: 20px auto;
       box-sizing: border-box;
-      page-break-after: always;
+      page-break-inside: avoid;
     }
 
     .card-front img {
@@ -114,16 +113,12 @@
       const apiKey = 'AIzaSyAMZBCUGGm2ZW9Lv8eEvJJPzLN6lVYypMo';
       const items = [];
       let nextPageToken = '';
-      let totalFetched = 0;
 
-      while (nextPageToken !== null && totalFetched < 50) {
+      while (nextPageToken !== null) {
         const apiUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${listId}&key=${apiKey}&pageToken=${nextPageToken}`;
         const res = await fetch(apiUrl);
         const data = await res.json();
-        if (!data.items || data.items.length === 0) {
-          alert("Geen video's gevonden in de playlist.");
-          return;
-        }
+        if (!data.items || data.items.length === 0) break;
 
         data.items.forEach(item => {
           if (!item.snippet || !item.snippet.resourceId) return;
@@ -138,7 +133,6 @@
         });
 
         nextPageToken = data.nextPageToken || null;
-        totalFetched = items.length;
       }
 
       if (items.length === 0) {
@@ -148,18 +142,17 @@
 
       const container = document.createElement("div");
       container.className = "print-area";
-      container.style.border = '2px dashed red';
 
-      if (isDouble) {
-        items.slice(0, 50).forEach(item => {
-          const front = document.createElement("div");
-          front.className = "card card-front";
-          const qr = document.createElement("img");
-          qr.crossOrigin = "anonymous";
-          qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(item.url)}`;
-          front.appendChild(qr);
-          container.appendChild(front);
+      items.forEach(item => {
+        const front = document.createElement("div");
+        front.className = "card card-front";
+        const qr = document.createElement("img");
+        qr.crossOrigin = "anonymous";
+        qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(item.url)}`;
+        front.appendChild(qr);
+        container.appendChild(front);
 
+        if (isDouble) {
           const back = document.createElement("div");
           back.className = "card card-back";
           back.innerHTML = `
@@ -168,36 +161,15 @@
             <div class="title">${item.title}</div>
           `;
           container.appendChild(back);
-        });
-      } else {
-        items.slice(0, 50).forEach(item => {
-          const front = document.createElement("div");
-          front.className = "card card-front";
-          const qr = document.createElement("img");
-          qr.crossOrigin = "anonymous";
-          qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(item.url)}`;
-          front.appendChild(qr);
-          container.appendChild(front);
-
-          const back = document.createElement("div");
-          back.className = "card card-back";
-          back.innerHTML = `
-            <div class="artist">${item.artist}</div>
-            <div class="release">${item.release}</div>
-            <div class="title">${item.title}</div>
-          `;
-          container.appendChild(back);
-        });
-      }
+        }
+      });
 
       document.body.appendChild(container);
-      console.log("🧩 Aantal kaartjes in container:", container.children.length);
 
       const imgs = container.querySelectorAll("img");
       Promise.all(Array.from(imgs).map(img =>
         img.complete ? Promise.resolve() : new Promise(res => img.onload = res)
       )).then(() => {
-        console.log("📸 Alle QR-afbeeldingen geladen, start PDF genereren...");
         setTimeout(() => {
           html2pdf()
             .set({
