@@ -46,88 +46,85 @@
 <body>
   <h1>Scan een QR-code 🎶</h1>
   <div id="qr-reader"></div>
-  <div id="yt-container">
-    <iframe id="yt-player" allow="autoplay" allowfullscreen></iframe>
-  </div>
+  <div id="yt-container"></div>
   <button id="retry-btn" style="display:none;">🔄 Scan opnieuw</button>
   <button id="switch-btn" style="display:block;">🔄 Draai camera</button>
 
   <script>
     const html5QrCode = new Html5Qrcode("qr-reader");
-    const player = document.getElementById("yt-player");
-    const container = document.getElementById("yt-container");
+    const ytContainer = document.getElementById("yt-container");
     const retryBtn = document.getElementById("retry-btn");
     const switchBtn = document.getElementById("switch-btn");
     let alreadyScanned = false;
     let currentCameraIndex = 0;
     let cameras = [];
 
-    // Start the QR scanner with the selected camera
-    function startScanner(cameraIndex) {
-  alreadyScanned = false;
-  retryBtn.style.display = "none"; // Hide retry button
-  container.style.display = "none"; // Hide video container
-  player.src = ""; // Clear current video
-  switchBtn.style.display = "block"; // Show switch button
+    async function startScanner(cameraIndex) {
+      alreadyScanned = false;
+      retryBtn.style.display = "none";
+      ytContainer.innerHTML = ""; // Verwijder iframe als die er is
+      ytContainer.style.display = "none";
+      switchBtn.style.display = "block";
 
-  // Get the list of cameras
-  Html5Qrcode.getCameras().then(camList => {
-    cameras = camList;  // Save camera list
-    if (cameras && cameras.length) {
-      const selectedCamera = cameras[cameraIndex];
-      html5QrCode.start(
-        { deviceId: { exact: selectedCamera.id } },
-        { fps: 10, qrbox: 250 },
-        (decodedText) => {
-          console.log("Gescanne tekst:", decodedText); // Debugging log
-          if (alreadyScanned) return;
-          if (decodedText.includes("youtube.com/watch?v=")) {
-            alreadyScanned = true;
-            const videoId = new URL(decodedText).searchParams.get("v");
-            if (videoId) {
-              player.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0&showinfo=0&rel=0&modestbranding=1`;
-              container.style.display = "block"; // Show video container
-              retryBtn.style.display = "inline-block"; // Show retry button
-              switchBtn.style.display = "none"; // Hide switch button
-              html5QrCode.stop();
+      if (html5QrCode._isScanning) {
+        await html5QrCode.stop();
+      }
+
+      try {
+        const camList = await Html5Qrcode.getCameras();
+        cameras = camList;
+
+        if (cameras.length) {
+          const selectedCamera = cameras[cameraIndex];
+          await html5QrCode.start(
+            { deviceId: { exact: selectedCamera.id } },
+            { fps: 10, qrbox: 250 },
+            async (decodedText) => {
+              if (alreadyScanned) return;
+              if (decodedText.includes("youtube.com/watch?v=")) {
+                alreadyScanned = true;
+                const videoId = new URL(decodedText).searchParams.get("v");
+                if (videoId) {
+                  await html5QrCode.stop();
+                  const iframe = document.createElement("iframe");
+                  iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0&showinfo=0&rel=0&modestbranding=1`;
+                  iframe.allow = "autoplay";
+                  iframe.allowFullscreen = true;
+                  ytContainer.appendChild(iframe);
+                  ytContainer.style.display = "block";
+                  retryBtn.style.display = "inline-block";
+                  switchBtn.style.display = "none";
+                }
+              }
+            },
+            (err) => {
+              console.warn("Scan fout:", err);
             }
-          }
-        },
-        (err) => {
-          console.warn("Scan fout:", err);
+          );
+        } else {
+          alert("Geen camera gevonden!");
         }
-      ).catch(err => {
-        console.error("Start fout:", err);
+      } catch (err) {
+        console.error("Camera fout:", err);
         alert("Camera niet beschikbaar.");
-      });
-    } else {
-      alert("Geen camera gevonden!");
+      }
     }
-  }).catch(err => {
-    console.error("Camera fout:", err);
-    alert("Camera niet beschikbaar.");
-  });
-}
 
-    // Switch camera function
-    function switchCamera() {
-  if (cameras.length > 1) {
-    currentCameraIndex = (currentCameraIndex + 1) % cameras.length; // Cycle through cameras
-    startScanner(currentCameraIndex); // Restart scanner with new camera
-  } else {
-    alert("Geen tweede camera gevonden!");
-  }
-}
+    async function switchCamera() {
+      if (cameras.length > 1) {
+        currentCameraIndex = (currentCameraIndex + 1) % cameras.length;
+        await startScanner(currentCameraIndex);
+      } else {
+        alert("Geen tweede camera gevonden!");
+      }
+    }
 
-    // Retry button functionality
     retryBtn.addEventListener("click", () => {
-      startScanner(currentCameraIndex); // Retry scanning with the same camera
+      startScanner(currentCameraIndex);
     });
 
-    // Switch button functionality
     switchBtn.addEventListener("click", switchCamera);
 
-    // Start scanning with the first camera by default
     startScanner(currentCameraIndex);
   </script>
 </body>
