@@ -6,6 +6,8 @@
   <title>Hitster Game</title>
   <script src="https://unpkg.com/html5-qrcode"></script>
   <script src="https://www.youtube.com/iframe_api"></script>
+  <!-- html2pdf.js voor PDF-export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
   <style>
     body { background: #121212; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 20px; }
     #mode-buttons { margin-bottom: 20px; }
@@ -17,7 +19,23 @@
     .cat-btn { width: 140px; }
     .track-item { margin: 10px 0; }
     .info { margin-top: 8px; }
-    #playlist-url { width: 80%; padding: 8px; margin: 10px 0; border-radius: 4px; border: none; }
+    #generate-pdf { display: none; }
+    /* Kaartjes‑stijl voor PDF */
+    .print-area { display: flex; flex-wrap: wrap; justify-content: center; background: #121212; color: white; }
+    .card {
+      background: #1e1e1e;
+      border: 2px solid #1db954;
+      border-radius: 12px;
+      width: 180px;
+      margin: 10px;
+      padding: 10px;
+      box-sizing: border-box;
+      text-align: center;
+    }
+    .card img { width: 100px; height: 100px; margin-bottom: 8px; }
+    .card .title { font-weight: bold; font-size: 14px; margin-bottom: 4px; }
+    .card .artist { font-size: 12px; margin-bottom: 4px; }
+    .card .release { font-size: 11px; color: #aaa; }
   </style>
 </head>
 <body>
@@ -28,21 +46,19 @@
     <button id="mode-playlist">Playlist</button>
   </div>
 
-  <!-- QR Scanner Section -->
   <section id="scanner-section">
     <h2>📷 Scan een YouTube QR-code</h2>
     <div id="qr-reader"></div>
     <button id="start-scan">▶️ Start Scannen</button>
   </section>
 
-  <!-- Categories Section -->
   <section id="categories-section">
     <h2>🎵 Kies een categorie</h2>
     <div id="categories"></div>
     <div id="tracks-container"></div>
+    <button id="generate-pdf">🖨️ Genereer PDF</button>
   </section>
 
-  <!-- Playlist Section -->
   <section id="playlist-section">
     <h2>📋 Plak YouTube Playlist Link</h2>
     <input type="text" id="playlist-url" placeholder="https://www.youtube.com/playlist?list=..." />
