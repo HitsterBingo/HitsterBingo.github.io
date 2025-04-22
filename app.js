@@ -21,37 +21,48 @@ const startBtn  = document.getElementById('start-scan'),
       playBtn   = document.getElementById('play-video'),
       rescanBtn = document.getElementById('rescan');
 
+function stopVideoIfPlaying() {
+  if (player && player.stopVideo) {
+    player.stopVideo();
+  }
+}
+
 function startScan() {
+  stopVideoIfPlaying(); // ⛔ Stop YouTube als opnieuw gescand wordt
   lastVideoId = null;
+
   playBtn.style.display   = 'none';
   rescanBtn.style.display = 'none';
   startBtn.style.display  = 'inline-block';
 
-  // Stop vorige scanner als die nog draait
   if (html5QrCode && html5QrCode._isScanning) {
     html5QrCode.stop().catch(() => {});
   }
 
-  // Gebruik de achtercamera
   const config = {
     fps: 10,
     qrbox: 250
   };
 
+  // 👉 Gebruik FRONT camera (bijv. OBS Virtual Cam)
+  const cameraConfig = { facingMode: { exact: "user" } };
+
   html5QrCode = new Html5Qrcode('qr-reader');
   html5QrCode.start(
-    { facingMode: "environment" },
+    cameraConfig,
     config,
     (decodedText) => {
       const url = new URL(decodedText);
       const videoId = url.searchParams.get("v");
       if (videoId) {
         lastVideoId = videoId;
-        html5QrCode.stop().then(() => {
-          startBtn.style.display  = 'none';
-          playBtn.style.display   = 'inline-block';
-          rescanBtn.style.display = 'inline-block';
-        });
+        if (html5QrCode._isScanning) {
+          html5QrCode.stop().then(() => {
+            startBtn.style.display  = 'none';
+            playBtn.style.display   = 'inline-block';
+            rescanBtn.style.display = 'inline-block';
+          });
+        }
       }
     },
     (error) => {
