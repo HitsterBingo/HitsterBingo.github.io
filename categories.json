@@ -1,12 +1,11 @@
-// categories.json
 {
   "Pop": "https://www.youtube.com/watch?v=jofNR_WkoCE&list=RDQMY_PdCeg4wJY&start_radio=1",
-  "Rock":  "https://www.youtube.com/playlist?list=PLMC9KNkIncKtPzgY-5rmhvj7fax8fdxoj",
+  "Rock": "https://www.youtube.com/playlist?list=PLMC9KNkIncKtPzgY-5rmhvj7fax8fdxoj",
   "Dance": "https://www.youtube.com/playlist?list=PLyMRjH6E1q0Tw5Dq9qMgQj7R7RyX74gKy",
-  "Jaren 80":  "https://www.youtube.com/playlist?list=PLWz5rJ2EKKc9CBxr3BVjPTPoDPLdPIFCE",
-  "Jaren 90":  "https://www.youtube.com/playlist?list=PLy3Te0Sq8mWUxjqpUD8toGMV8zW8hSdu_",
-  "Gen Z":     "https://www.youtube.com/playlist?list=PLmb1BRWdFixg7EZz8ji5OqX1fFo_5Qhna",
+  "Jaren 80": "https://www.youtube.com/playlist?list=PLWz5rJ2EKKc9CBxr3BVjPTPoDPLdPIFCE",
+  "Jaren 90": "https://www.youtube.com/playlist?list=PLy3Te0Sq8mWUxjqpUD8toGMV8zW8hSdu_",
+  "Gen Z": "https://www.youtube.com/playlist?list=PLmb1BRWdFixg7EZz8ji5OqX1fFo_5Qhna",
   "Gen Alpha": "https://www.youtube.com/playlist?list=PL4fGSI1pDJn5jL-T_UKHu0hRSg-YebMTc",
-  "Junior":    "https://www.youtube.com/playlist?list=PLw-VjHDlEOgs6461ZE8jVnn03J66sG_IR",
-  "Kids":      "https://www.youtube.com/playlist?list=PL0hWP0SOjkQ3s6WfTLSX-E9jcHuZqj0QO"
+  "Junior": "https://www.youtube.com/playlist?list=PLw-VjHDlEOgs6461ZE8jVnn03J66sG_IR",
+  "Kids": "https://www.youtube.com/playlist?list=PL0hWP0SOjkQ3s6WfTLSX-E9jcHuZqj0QO"
 }
