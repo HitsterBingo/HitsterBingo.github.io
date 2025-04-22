@@ -1,6 +1,6 @@
 // app.js
 
-// 1. YouTube IFrame API callback
+// === 1. YouTube IFrame API setup ===
 let player;
 function onYouTubeIframeAPIReady() {
   player = new YT.Player('player', {
@@ -11,7 +11,7 @@ function onYouTubeIframeAPIReady() {
   });
 }
 
-// 2. Mode toggling
+// === 2. Modus‑toggle ===
 const scanBtn     = document.getElementById('mode-scan');
 const catBtn      = document.getElementById('mode-cat');
 const playlistBtn = document.getElementById('mode-playlist');
@@ -25,16 +25,15 @@ function hideAll() {
   catSec.style.display  = 'none';
   playSec.style.display = 'none';
 }
-
 scanBtn.addEventListener('click', () => { hideAll(); scanSec.style.display = 'block'; });
 catBtn .addEventListener('click', () => { hideAll(); catSec .style.display = 'block'; });
 playlistBtn.addEventListener('click', () => { hideAll(); playSec.style.display = 'block'; });
 
-// init in scan‑mode
+// start in scan‑modus
 hideAll();
 scanSec.style.display = 'block';
 
-// 3. QR scanner
+// === 3. QR‑scanner ===
 const html5QrCode = new Html5Qrcode('qr-reader');
 document.getElementById('start-scan').addEventListener('click', () => {
   html5QrCode.start(
@@ -42,8 +41,7 @@ document.getElementById('start-scan').addEventListener('click', () => {
     { fps: 10, qrbox: 250 },
     decoded => {
       if (decoded.includes('youtube.com/watch?')) {
-        const url = new URL(decoded);
-        const v   = url.searchParams.get('v');
+        const v = new URL(decoded).searchParams.get('v');
         if (v) {
           html5QrCode.stop();
           player.loadVideoById(v);
@@ -55,7 +53,7 @@ document.getElementById('start-scan').addEventListener('click', () => {
   ).catch(err => console.error('Camera error:', err));
 });
 
-// 4. Load categories.json
+// === 4. Categorieën inladen ===
 let categories = {};
 fetch('categories.json')
   .then(r => r.json())
@@ -66,57 +64,62 @@ fetch('categories.json')
   .catch(err => console.error('Kon categories niet laden:', err));
 
 function renderCategoryButtons() {
-  const container = document.getElementById('categories');
-  Object.entries(categories).forEach(([cat, val]) => {
+  const cdiv = document.getElementById('categories');
+  cdiv.innerHTML = '';
+  Object.keys(categories).forEach(cat => {
     const btn = document.createElement('button');
     btn.textContent   = cat;
     btn.classList.add('cat-btn');
-    btn.onclick = () => {
-      if (typeof val === 'string') {
-        // val is een playlist-URL
-        const listId = new URL(val).searchParams.get('list');
-        player.loadPlaylist({ listType: 'playlist', list: listId, index: 0 });
-        player.playVideo();
-      } else {
-        // val is array met losse nummers
-        showTracks(cat);
-      }
-    };
-    container.appendChild(btn);
+    btn.onclick = () => selectCategory(cat);
+    cdiv.appendChild(btn);
   });
 }
 
-function showTracks(cat) {
-  const tc = document.getElementById('tracks-container');
-  tc.innerHTML = '';
-  categories[cat].forEach((t,i) => {
-    const item = document.createElement('div');
-    item.classList.add('track-item');
-    item.innerHTML = `
-      <button class="reveal-btn">Track ${i+1}: Ontdek</button>
-      <div class="info" style="display:none;">
-        <p><strong>${t.title}</strong> – ${t.artist} (<em>${t.release}</em>)</p>
-        <button class="play-btn">▶️ Speel af</button>
-      </div>
+let currentCat = '';
+function selectCategory(cat) {
+  currentCat = cat;
+  document.getElementById('tracks-container').innerHTML = '';
+  document.getElementById('generate-pdf').style.display = 'inline-block';
+}
+
+// === 5. PDF‑generatie ===
+document.getElementById('generate-pdf').addEventListener('click', () => {
+  const data = categories[currentCat];
+  if (!Array.isArray(data)) return alert('Deze categorie ondersteunt geen PDF-kaartjes.');
+
+  // bouw een hidden print‑container
+  const container = document.createElement('div');
+  container.classList.add('print-area');
+
+  data.forEach(item => {
+    const card = document.createElement('div');
+    card.classList.add('card');
+    // gebruik gratis QR‑API
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(item.url)}`;
+    card.innerHTML = `
+      <img src="${qrUrl}" alt="QR voor ${item.title}"/>
+      <div class="title">${item.title}</div>
+      <div class="artist">${item.artist}</div>
+      <div class="release">${item.release}</div>
     `;
-    item.querySelector('.reveal-btn').onclick = () => {
-      item.querySelector('.info').style.display = 'block';
-    };
-    item.querySelector('.play-btn').onclick = () => {
-      player.loadVideoById(t.videoId);
-      player.playVideo();
-    };
-    tc.appendChild(item);
+    container.appendChild(card);
   });
-}
 
-// 5. Playlist loader (handmatig plakken)
+  document.body.appendChild(container);
+  // html2pdf.js opties
+  html2pdf()
+    .set({ margin: 10, filename: `${currentCat}.pdf`, html2canvas: { scale: 2 } })
+    .from(container)
+    .save()
+    .then(() => container.remove());
+});
+
+// === 6. Playlist loader ===
 document.getElementById('load-playlist').addEventListener('click', () => {
   const raw = document.getElementById('playlist-url').value;
   try {
-    const u      = new URL(raw);
-    const listId = u.searchParams.get('list');
-    if (!listId) throw new Error();
+    const listId = new URL(raw).searchParams.get('list');
+    if (!listId) throw '';
     player.loadPlaylist({ listType:'playlist', list:listId, index:0 });
     player.playVideo();
   } catch {
