@@ -39,9 +39,12 @@
     }
 
     .print-area {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 20px;
       padding: 40px;
       margin: 20px auto;
-      max-width: 1000px;
+      max-width: 1100px;
       background: white;
       color: black;
     }
@@ -55,45 +58,35 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      flex-direction: column;
       position: relative;
-      margin: 20px auto;
       box-sizing: border-box;
       page-break-inside: avoid;
     }
 
-    .card-front img {
+    .card img {
       width: 120px;
       height: 120px;
     }
 
-    .card-back {
-      flex-direction: column;
-    }
-
-    .card-back .artist {
-      position: absolute;
-      top: 8px;
-      width: 100%;
-      text-align: center;
+    .card .artist {
       font-size: 14px;
       font-weight: normal;
+      margin-bottom: 5px;
     }
 
-    .card-back .release {
-      font-size: 20px;
+    .card .release {
+      font-size: 18px;
       font-weight: bold;
       text-align: center;
-      margin: auto 0;
+      margin: 10px 0;
     }
 
-    .card-back .title {
-      position: absolute;
-      bottom: 10px;
-      width: 100%;
-      text-align: center;
-      font-size: 16px;
+    .card .title {
+      font-size: 14px;
       font-style: italic;
       transform: rotate(-5deg);
+      text-align: center;
     }
   </style>
 </head>
@@ -143,26 +136,53 @@
       const container = document.createElement("div");
       container.className = "print-area";
 
-      items.forEach(item => {
-        const front = document.createElement("div");
-        front.className = "card card-front";
-        const qr = document.createElement("img");
-        qr.crossOrigin = "anonymous";
-        qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(item.url)}`;
-        front.appendChild(qr);
-        container.appendChild(front);
+      if (isDouble) {
+        items.forEach(item => {
+          const front = document.createElement("div");
+          front.className = "card";
+          const qr = document.createElement("img");
+          qr.crossOrigin = "anonymous";
+          qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(item.url)}`;
+          front.appendChild(qr);
+          container.appendChild(front);
 
-        if (isDouble) {
           const back = document.createElement("div");
-          back.className = "card card-back";
+          back.className = "card";
           back.innerHTML = `
             <div class="artist">${item.artist}</div>
             <div class="release">${item.release}</div>
             <div class="title">${item.title}</div>
           `;
           container.appendChild(back);
-        }
-      });
+        });
+      } else {
+        items.forEach(item => {
+          const card = document.createElement("div");
+          card.className = "card";
+
+          const qr = document.createElement("img");
+          qr.crossOrigin = "anonymous";
+          qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(item.url)}`;
+          card.appendChild(qr);
+
+          const artist = document.createElement("div");
+          artist.className = "artist";
+          artist.textContent = item.artist;
+          card.appendChild(artist);
+
+          const release = document.createElement("div");
+          release.className = "release";
+          release.textContent = item.release;
+          card.appendChild(release);
+
+          const title = document.createElement("div");
+          title.className = "title";
+          title.textContent = item.title;
+          card.appendChild(title);
+
+          container.appendChild(card);
+        });
+      }
 
       document.body.appendChild(container);
 
@@ -174,7 +194,7 @@
           html2pdf()
             .set({
               filename: `playlist-kaartjes.pdf`,
-              margin: [20, 10, 20, 10],
+              margin: [10, 10, 10, 10],
               html2canvas: { scale: 2, useCORS: true },
               jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             })
