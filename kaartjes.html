@@ -35,18 +35,27 @@
     width: 180px;
     height: 240px;
     border: 1px solid #ccc;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
     page-break-inside: avoid;
-    padding: 10px;
     background: white;
     color: black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     position: relative;
+    padding: 10px;
+    box-sizing: border-box;
   }
 
-  .card .artist {
+  .card-front img {
+    width: 120px;
+    height: 120px;
+  }
+
+  .card-back {
+    flex-direction: column;
+  }
+
+  .card-back .artist {
     position: absolute;
     top: 8px;
     width: 100%;
@@ -55,26 +64,14 @@
     font-weight: normal;
   }
 
-  .card .release {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 100%;
-    text-align: center;
+  .card-back .release {
     font-size: 20px;
     font-weight: bold;
+    text-align: center;
+    margin: auto 0;
   }
 
-  .card img {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    margin-top: 30px;
-    width: 120px;
-    height: 120px;
-  }
-
-  .card .title {
+  .card-back .title {
     position: absolute;
     bottom: 10px;
     width: 100%;
