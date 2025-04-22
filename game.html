@@ -50,8 +50,8 @@
       });
 
       player.addListener('ready', ({ device_id }) => {
-        console.log('Spotify player ready, device ID:', device_id);
-        window.spotifyDeviceId = device_id;
+        console.log('Spotify player is ready, Device ID:', device_id);
+        window.spotifyDeviceId = device_id; // Stel de device_id correct in
       });
 
       player.addListener('initialization_error', ({ message }) => console.error("Init error:", message));
@@ -99,7 +99,12 @@
     };
 
     function playTrack(trackId) {
+      if (!window.spotifyDeviceId) {
+        console.error("Geen device_id beschikbaar!");
+        return;
+      }
       console.log("Speel track af:", trackId);
+
       fetch(`https://api.spotify.com/v1/me/player/play?device_id=${window.spotifyDeviceId}`, {
         method: "PUT",
         headers: {
@@ -111,10 +116,12 @@
         })
       }).then(response => {
         if (!response.ok) {
-          console.error("Track speel fout:", response);
+          console.error("Fout bij het afspelen van de track:", response);
         } else {
           console.log("Track speelt af 🎶");
         }
+      }).catch(error => {
+        console.error("Fout tijdens het verzoek:", error);
       });
     }
   </script>
