@@ -64,34 +64,36 @@
       player.connect();
     };
 
-    // Start QR code scanner
-    const html5QrCode = new Html5Qrcode("qr-reader");
+    // Start QR code scanner after library is loaded
+    window.onload = function() {
+      const html5QrCode = new Html5Qrcode("qr-reader");
 
-    Html5Qrcode.getCameras().then(cameras => {
-      if (cameras && cameras.length) {
-        const obsCam = cameras.find(cam => cam.label.toLowerCase().includes('obs')) || cameras[0];
-        html5QrCode.start(
-          { deviceId: { exact: obsCam.id } },
-          { fps: 10, qrbox: 250 },
-          (decodedText) => {
-            console.log("QR scan:", decodedText);
-            if (decodedText.includes("spotify.com/track/")) {
-              const trackId = decodedText.split("/track/")[1].split("?")[0];
-              playTrack(trackId);
-              html5QrCode.stop();
+      Html5Qrcode.getCameras().then(cameras => {
+        if (cameras && cameras.length) {
+          const obsCam = cameras.find(cam => cam.label.toLowerCase().includes('obs')) || cameras[0];
+          html5QrCode.start(
+            { deviceId: { exact: obsCam.id } },
+            { fps: 10, qrbox: 250 },
+            (decodedText) => {
+              console.log("QR scan:", decodedText);
+              if (decodedText.includes("spotify.com/track/")) {
+                const trackId = decodedText.split("/track/")[1].split("?")[0];
+                playTrack(trackId);
+                html5QrCode.stop();
+              }
+            },
+            (err) => {
+              console.warn("QR scan error", err);
             }
-          },
-          (err) => {
-            console.warn("QR scan error", err);
-          }
-        );
-      } else {
-        alert("Geen camera gevonden!");
-      }
-    }).catch(err => {
-      console.error("Camera error", err);
-      alert("Kon geen camera vinden.");
-    });
+          );
+        } else {
+          alert("Geen camera gevonden!");
+        }
+      }).catch(err => {
+        console.error("Camera error", err);
+        alert("Kon geen camera vinden.");
+      });
+    }
 
     function playTrack(trackId) {
       console.log("Speel track af:", trackId);
