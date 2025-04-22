@@ -159,18 +159,19 @@
           container.appendChild(qrPage);
 
           const infoPage = document.createElement("div");
-          infoPage.className = "page";
-          group.forEach(item => {
-            const infoCard = document.createElement("div");
-            infoCard.className = "card";
-            infoCard.innerHTML = `
-              <div class="artist">${item.artist}</div>
-              <div class="release">${item.release}</div>
-              <div class="title">${item.title}</div>
-            `;
-            infoPage.appendChild(infoCard);
-          });
-          container.appendChild(infoPage);
+infoPage.className = "page";
+group.forEach(item => {
+  const infoCard = document.createElement("div");
+  infoCard.className = "card";
+  infoCard.innerHTML = `
+    <div class="artist">${item.artist}</div>
+    <div class="release">${item.release}</div>
+    <div class="title">${item.title}</div>
+  `;
+  infoPage.appendChild(infoCard);
+});
+container.appendChild(infoPage);
+
         }
       } else {
         let page = document.createElement("div");
