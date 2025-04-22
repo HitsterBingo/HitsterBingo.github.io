@@ -42,6 +42,9 @@
       padding: 40px;
       margin: 20px auto;
       max-width: 1000px;
+      background: white;
+      z-index: 9999;
+      position: relative;
     }
 
     .card {
@@ -145,6 +148,7 @@
 
       const container = document.createElement("div");
       container.className = "print-area";
+      container.style.border = '2px dashed red';
 
       if (isDouble) {
         items.slice(0, 50).forEach(item => {
@@ -174,6 +178,15 @@
           qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(item.url)}`;
           front.appendChild(qr);
           container.appendChild(front);
+
+          const back = document.createElement("div");
+          back.className = "card card-back";
+          back.innerHTML = `
+            <div class="artist">${item.artist}</div>
+            <div class="release">${item.release}</div>
+            <div class="title">${item.title}</div>
+          `;
+          container.appendChild(back);
         });
       }
 
@@ -185,16 +198,18 @@
         img.complete ? Promise.resolve() : new Promise(res => img.onload = res)
       )).then(() => {
         console.log("📸 Alle QR-afbeeldingen geladen, start PDF genereren...");
-        html2pdf()
-          .set({
-            filename: `playlist-kaartjes.pdf`,
-            margin: [20, 10, 20, 10],
-            html2canvas: { scale: 2, useCORS: true },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-          })
-          .from(container)
-          .save()
-          .then(() => console.log("✅ PDF succesvol gegenereerd!"));
+        setTimeout(() => {
+          html2pdf()
+            .set({
+              filename: `playlist-kaartjes.pdf`,
+              margin: [20, 10, 20, 10],
+              html2canvas: { scale: 2, useCORS: true },
+              jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            })
+            .from(container)
+            .save()
+            .then(() => console.log("✅ PDF succesvol gegenereerd!"));
+        }, 500);
       });
     }
   </script>
