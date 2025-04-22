@@ -12,7 +12,6 @@
       text-align: center;
       padding: 2rem;
     }
-
     input[type="text"] {
       width: 80%;
       max-width: 500px;
@@ -20,13 +19,11 @@
       font-size: 16px;
       margin-bottom: 10px;
     }
-
     label {
       display: block;
       margin: 10px auto;
       font-size: 16px;
     }
-
     button {
       padding: 12px 24px;
       background: #1db954;
@@ -37,7 +34,6 @@
       cursor: pointer;
       margin-top: 10px;
     }
-
     .print-area {
       padding: 40px;
       margin: 20px auto;
@@ -45,7 +41,6 @@
       background: white;
       color: black;
     }
-
     .page {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -53,11 +48,9 @@
       gap: 20px;
       page-break-after: always;
     }
-
     .page.reverse {
       direction: rtl;
     }
-
     .card {
       aspect-ratio: 1 / 1;
       border: 1px solid #ccc;
@@ -70,19 +63,16 @@
       box-sizing: border-box;
       padding: 10px;
     }
-
     .card img {
       width: 80px;
       height: 80px;
     }
-
     .card .release {
       font-size: 18px;
       font-weight: bold;
       text-align: center;
       margin: 10px 0;
     }
-
     .card .title {
       font-size: 14px;
       font-style: italic;
@@ -158,23 +148,32 @@
         if (!data.items?.length) break;
 
         for (const item of data.items) {
-          const originalTitle = item.snippet.title;
-          const title = cleanTitle(originalTitle);
-          const videoId = item.snippet.resourceId.videoId;
+          const snippet = item.snippet;
+          const videoId = snippet?.resourceId?.videoId;
+          if (!videoId) continue;
+
           const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+          const originalTitle = snippet.title;
+          const title = cleanTitle(originalTitle);
 
           await sleep(800); // cooldown
 
           let release = null;
-          const mbDate = await fetchReleaseDate(title);
-          if (mbDate && /^\d{4}-\d{2}-\d{2}$/.test(mbDate)) {
-            const d = new Date(mbDate);
-            release = d.toLocaleString('nl-NL', { month: 'long', year: 'numeric' });
-          } else {
+          try {
+            const mbDate = await fetchReleaseDate(title);
+            if (mbDate && /^\d{4}-\d{2}-\d{2}$/.test(mbDate)) {
+              const d = new Date(mbDate);
+              release = d.toLocaleString('nl-NL', { month: 'long', year: 'numeric' });
+            }
+          } catch {}
+
+          if (!release) {
             release = await getVideoUploadDate(videoId);
           }
 
-          items.push({ title: originalTitle, release, url: videoUrl });
+          if (release && release !== "onbekend") {
+            items.push({ title: originalTitle, release, url: videoUrl });
+          }
         }
 
         nextPageToken = data.nextPageToken || null;
