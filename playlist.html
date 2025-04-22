@@ -104,7 +104,11 @@
   <button onclick="genereerKaartjes()">🎵 Genereer kaartjes</button>
 
   <script>
-    const apiKey = 'AIzaSyAMZBCUGGm2ZW9Lv8eEvJJPzLN6lVYypMo'; // ← jouw API key
+    const apiKey = 'AIzaSyAMZBCUGGm2ZW9Lv8eEvJJPzLN6lVYypMo';
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
 
     async function fetchReleaseDate(title, artist) {
       const query = `recording:"${title}" AND artist:"${artist}"`;
@@ -120,7 +124,7 @@
           return data.recordings[0].releases[0].date;
         }
       } catch (err) {
-        console.warn("Release info niet gevonden:", err);
+        console.warn("MusicBrainz faalt voor:", title, err);
       }
       return null;
     }
@@ -147,10 +151,18 @@
           const videoId = item.snippet.resourceId.videoId;
           const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
 
-          let release = await fetchReleaseDate(title, artist);
-          if (!release) {
-            const publishedAt = new Date(item.snippet.publishedAt);
-            release = publishedAt.toLocaleString('nl-NL', { month: 'long', year: 'numeric' });
+          await sleep(1200);
+          let release = null;
+          try {
+            release = await fetchReleaseDate(title, artist);
+          } catch { release = null; }
+
+          if (release && /^\d{4}-\d{2}-\d{2}$/.test(release)) {
+            const d = new Date(release);
+            release = d.toLocaleString('nl-NL', { month: 'long', year: 'numeric' });
+          } else {
+            const fallback = new Date(item.snippet.publishedAt);
+            release = fallback.toLocaleString('nl-NL', { month: 'long', year: 'numeric' });
           }
 
           items.push({ title, artist, release, url: videoUrl });
