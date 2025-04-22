@@ -97,8 +97,4 @@ startBtn.onclick = startScan;
 rescanBtn.onclick = startScan;
 
 playBtn.onclick = () => {
-  if (lastVideoId && player && player.loadVideoById) {
-    player.loadVideoById(lastVideoId);
-    player.playVideo();
-  }
-};
+  if (lastVideoId && player && player.loadVideoBy
