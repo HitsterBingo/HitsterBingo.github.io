@@ -117,11 +117,15 @@
         const apiUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${listId}&key=${apiKey}&pageToken=${nextPageToken}`;
         const res = await fetch(apiUrl);
         const data = await res.json();
-        if (!data.items) break;
+        if (!data.items || data.items.length === 0) {
+          alert("Geen video's gevonden in de playlist.");
+          return;
+        }
 
         data.items.forEach(item => {
+          if (!item.snippet || !item.snippet.resourceId) return;
           const title = item.snippet.title;
-          const rawArtist = item.snippet.videoOwnerChannelTitle || item.snippet.channelTitle;
+          const rawArtist = item.snippet.videoOwnerChannelTitle || item.snippet.channelTitle || "Onbekend";
           const artist = rawArtist.replace(/vevo/gi, '').trim();
           const publishedAt = new Date(item.snippet.publishedAt);
           const maandJaar = publishedAt.toLocaleString('nl-NL', { month: 'long', year: 'numeric' });
@@ -132,6 +136,11 @@
 
         nextPageToken = data.nextPageToken || null;
         totalFetched = items.length;
+      }
+
+      if (items.length === 0) {
+        alert("Geen kaartjes om te genereren.");
+        return;
       }
 
       const container = document.createElement("div");
@@ -169,11 +178,13 @@
       }
 
       document.body.appendChild(container);
+      console.log("🧩 Aantal kaartjes in container:", container.children.length);
 
       const imgs = container.querySelectorAll("img");
       Promise.all(Array.from(imgs).map(img =>
         img.complete ? Promise.resolve() : new Promise(res => img.onload = res)
       )).then(() => {
+        console.log("📸 Alle QR-afbeeldingen geladen, start PDF genereren...");
         html2pdf()
           .set({
             filename: `playlist-kaartjes.pdf`,
@@ -183,7 +194,7 @@
           })
           .from(container)
           .save()
-          .then(() => console.log("✅ PDF gegenereerd!"));
+          .then(() => console.log("✅ PDF succesvol gegenereerd!"));
       });
     }
   </script>
