@@ -1,94 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Hitster Clone</title>
+  <meta charset="UTF-8">
+  <title>Hitster Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
-      background: linear-gradient(135deg, #1db954, #121212);
+      font-family: sans-serif;
+      background: #121212;
       color: white;
-      font-family: 'Segoe UI', sans-serif;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       height: 100vh;
-      margin: 0;
     }
-
-    .card {
-      background: #181818;
-      padding: 2rem;
-      border-radius: 20px;
-      box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
-      text-align: center;
-      max-width: 400px;
-      width: 90%;
-    }
-
-    .card h1 {
-      font-size: 2rem;
-      margin-bottom: 1rem;
-    }
-
-    .spotify-button {
-      background: #1db954;
+    button {
+      background: #1DB954;
       border: none;
-      color: white;
-      padding: 1rem 2rem;
-      border-radius: 30px;
-      font-size: 1rem;
+      padding: 16px 32px;
+      font-size: 1.2rem;
+      border-radius: 12px;
       cursor: pointer;
-      transition: 0.3s ease;
-    }
-
-    .spotify-button:hover {
-      background: #1ed760;
+      color: white;
     }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>🎵 Welkom bij Hitster</h1>
-    <p>Log in met Spotify om te beginnen!</p>
-    <button class="spotify-button" onclick="loginWithSpotify()">Login met Spotify</button>
-  </div>
+  <h1>Welkom bij Hitster 🎵</h1>
+  <button onclick="loginWithSpotify()">Login with Spotify</button>
 
-  <script>
-    function loginWithSpotify() {
-      const clientId = '2c5922b245944d7087cacfc63872f736';
-      const redirectUri = 'https://transcendent-cranachan-74e40a.netlify.app/callback/';
-      const scope = 'user-read-private user-read-email';
-
-      const codeVerifier = generateCodeVerifier();
-      generateCodeChallenge(codeVerifier).then(codeChallenge => {
-        localStorage.setItem('code_verifier', codeVerifier);
-
-        const args = new URLSearchParams({
-          response_type: 'code',
-          client_id: clientId,
-          scope: scope,
-          redirect_uri: redirectUri,
-          code_challenge_method: 'S256',
-          code_challenge: codeChallenge
-        });
-
-        window.location = 'https://accounts.spotify.com/authorize?' + args;
-      });
-    }
-
-    function generateCodeVerifier() {
-      const array = new Uint8Array(56);
-      window.crypto.getRandomValues(array);
-      return btoa(String.fromCharCode(...array)).replace(/[^a-zA-Z0-9]/g, '').substring(0, 128);
-    }
-
-    async function generateCodeChallenge(codeVerifier) {
-      const data = new TextEncoder().encode(codeVerifier);
-      const digest = await window.crypto.subtle.digest('SHA-256', data);
-      return btoa(String.fromCharCode(...new Uint8Array(digest)))
-        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-    }
-  </script>
+  <script src="login.js"></script>
 </body>
 </html>
