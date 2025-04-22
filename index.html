@@ -10,12 +10,11 @@
   <!-- html2pdf.js voor PDF‑export -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
   <style>
-    body { background: #121212; color: #fff; font-family: sans-serif; text-align: center; margin: 0; padding: 20px; }
+    body { background: #121212; color: #fff; font-family: sans-serif; text-align: center; margin: 0; padding: 20px }
     #mode-buttons { margin-bottom: 20px; }
-    button { margin: 5px; padding: 12px 24px; font-size: 16px; background: #1db954; border: none; border-radius: 8px; color: white; cursor: pointer; }
+    button { margin: 5px; padding: 12px 24px; font-size: 16px; background: #1db954; border: none; border-radius: 8px; color: #fff; cursor: pointer; }
     button:hover { background: #1ed760; }
     section { display: none; }
-    /* Kaartjes‑stijl */
     .print-area { display: flex; flex-wrap: wrap; justify-content: center; }
     .card { background: #1e1e1e; border: 2px solid #1db954; border-radius: 12px; width: 180px; height: 260px; margin: 10px; padding: 10px; box-sizing: border-box; page-break-inside: avoid; }
     .card-front, .card-back { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
@@ -24,6 +23,8 @@
     .card-back .artist { font-size: 12px; margin-bottom: 4px; }
     .card-back .release{ font-size: 11px; color: #aaa; }
     #playlist-url { width: 80%; padding: 8px; margin: 10px 0; border-radius: 4px; border: none; }
+    /* verplaats player off‑screen i.p.v. display:none */
+    #player { position: absolute; left: -9999px; width: 1px; height: 1px; }
   </style>
 </head>
 <body>
@@ -42,7 +43,7 @@
     <button id="play-video" style="display:none;">▶️ Speel Video</button>
   </section>
 
-  <!-- Categorieën (PDF maker) -->
+  <!-- Categorieën (PDF) -->
   <section id="categories-section">
     <h2>🎵 Kies een categorie voor PDF‑kaartjes</h2>
     <div id="categories"></div>
@@ -55,8 +56,8 @@
     <button id="load-playlist">▶️ Laad Playlist</button>
   </section>
 
-  <!-- YouTube Player (verborgen) -->
-  <div id="player" style="display:none;"></div>
+  <!-- YouTube Player off‑screen -->
+  <div id="player"></div>
 
   <script src="app.js"></script>
 </body>
