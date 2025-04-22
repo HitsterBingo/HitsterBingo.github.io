@@ -110,7 +110,7 @@
       const isDouble = document.getElementById("double-sided").checked;
       if (!listId) return alert("Geen geldige playlistlink.");
 
-      const apiKey = 'YOUR_API_KEY_HERE';
+      const apiKey = 'AIzaSyAMZBCUGGm2ZW9Lv8eEvJJPzLN6lVYypMo';
       const items = [];
       let nextPageToken = '';
 
@@ -176,33 +176,30 @@
           container.appendChild(infoPage);
         }
       } else {
-        let page = document.createElement("div");
-        page.className = "page";
-        items.forEach((item, index) => {
-          const qrCard = document.createElement("div");
-          qrCard.className = "card";
-          const qr = document.createElement("img");
-          qr.crossOrigin = "anonymous";
-          qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(item.url)}`;
-          qrCard.appendChild(qr);
-          page.appendChild(qrCard);
+        for (let i = 0; i < items.length; i += 9) {
+          const group = items.slice(i, i + 9);
+          const page = document.createElement("div");
+          page.className = "page";
+          group.forEach(item => {
+            const qrCard = document.createElement("div");
+            qrCard.className = "card";
+            const qr = document.createElement("img");
+            qr.crossOrigin = "anonymous";
+            qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(item.url)}`;
+            qrCard.appendChild(qr);
+            page.appendChild(qrCard);
 
-          const infoCard = document.createElement("div");
-          infoCard.className = "card";
-          infoCard.innerHTML = `
-            <div class="artist">${item.artist}</div>
-            <div class="release">${item.release}</div>
-            <div class="title">${item.title}</div>
-          `;
-          page.appendChild(infoCard);
-
-          if ((index + 1) % 4 === 0) {
-            container.appendChild(page);
-            page = document.createElement("div");
-            page.className = "page";
-          }
-        });
-        if (page.childNodes.length) container.appendChild(page);
+            const infoCard = document.createElement("div");
+            infoCard.className = "card";
+            infoCard.innerHTML = `
+              <div class="artist">${item.artist}</div>
+              <div class="release">${item.release}</div>
+              <div class="title">${item.title}</div>
+            `;
+            page.appendChild(infoCard);
+          });
+          container.appendChild(page);
+        }
       }
 
       document.body.appendChild(container);
