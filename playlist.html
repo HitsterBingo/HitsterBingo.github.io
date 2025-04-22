@@ -159,15 +159,11 @@
           await sleep(800); // cooldown
 
           let release = null;
-          try {
-            const mbDate = await fetchReleaseDate(title);
-            if (mbDate && /^\d{4}-\d{2}-\d{2}$/.test(mbDate)) {
-              const d = new Date(mbDate);
-              release = d.toLocaleString('nl-NL', { month: 'long', year: 'numeric' });
-            }
-          } catch {}
-
-          if (!release) {
+          const mbDate = await fetchReleaseDate(title);
+          if (mbDate && /^\d{4}-\d{2}-\d{2}$/.test(mbDate)) {
+            const d = new Date(mbDate);
+            release = d.toLocaleString('nl-NL', { month: 'long', year: 'numeric' });
+          } else {
             release = await getVideoUploadDate(videoId);
           }
 
@@ -235,14 +231,22 @@
       Promise.all(Array.from(imgs).map(img =>
         img.complete ? Promise.resolve() : new Promise(res => img.onload = res)
       )).then(() => {
-        setTimeout(() => {
-          html2pdf().set({
-            filename: "playlist-kaartjes.pdf",
-            margin: [10, 10, 10, 10],
-            html2canvas: { scale: 2, useCORS: true },
-            jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
-          }).from(container).save();
-        }, 500);
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            html2pdf().set({
+              filename: "playlist-kaartjes.pdf",
+              margin: [10, 10, 10, 10],
+              html2canvas: {
+                scale: 2,
+                useCORS: true,
+                scrollY: 0,
+                windowWidth: document.documentElement.scrollWidth,
+                windowHeight: document.documentElement.scrollHeight
+              },
+              jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+            }).from(container).save();
+          }, 200);
+        });
       });
     }
   </script>
