@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Hitster Game</title>
   <style>
     body {
@@ -18,103 +18,105 @@
     #qr-reader {
       width: 300px;
     }
+    #player {
+      display: none;
+    }
   </style>
+
+  <!-- Correcte versie van de QR-code scanner -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+  <!-- Spotify Web Playback SDK -->
+  <script src="https://sdk.scdn.co/spotify-player.js"></script>
 </head>
 <body>
   <h1>Scan een Spotify QR-code 🎶</h1>
   <div id="qr-reader"></div>
+  <div id="player"></div>
 
-  <!-- Load HTML5 QR Code lib -->
-  <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8"></script>
-
-  <!-- Start QR code scanner -->
   <script>
-    window.onload = function () {
-      const token = localStorage.getItem("spotify_access_token");
-      if (!token) return (window.location.href = "/");
-
-      const html5QrCode = new Html5Qrcode("qr-reader");
-
-      Html5Qrcode.getCameras().then(cameras => {
-        if (cameras && cameras.length) {
-          const obsCam = cameras.find(cam => cam.label.toLowerCase().includes('obs')) || cameras[0];
-          html5QrCode.start(
-            { deviceId: { exact: obsCam.id } },
-            { fps: 10, qrbox: 250 },
-            (decodedText) => {
-              console.log("QR scan:", decodedText);
-              if (decodedText.includes("spotify.com/track/")) {
-                const trackId = decodedText.split("/track/")[1].split("?")[0];
-                playTrack(trackId);
-                html5QrCode.stop();
-              }
-            },
-            (err) => {
-              console.warn("QR scan error", err);
-            }
-          );
-        } else {
-          alert("Geen camera gevonden!");
-        }
-      }).catch(err => {
-        console.error("Camera error", err);
-        alert("Kon geen camera vinden.");
-      });
-    };
-
-    function playTrack(trackId) {
-      if (!window.spotifyDeviceId) {
-        return console.error("Spotify device niet klaar");
-      }
-
-      fetch(`https://api.spotify.com/v1/me/player/play?device_id=${window.spotifyDeviceId}`, {
-        method: 'PUT',
-        body: JSON.stringify({ uris: [`spotify:track:${trackId}`] }),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem("spotify_access_token")}`
-        },
-      }).then(res => {
-        if (!res.ok) {
-          console.error("Speel track fout:", res);
-        } else {
-          console.log("Track speelt af 🎵");
-        }
-      });
+    // Check for Spotify access token
+    const token = localStorage.getItem("spotify_access_token");
+    if (!token) {
+      window.location.href = "/";
     }
-  </script>
 
-  <!-- Spotify SDK + init -->
-  <script>
+    // Set up Spotify Web Playback SDK
     window.onSpotifyWebPlaybackSDKReady = () => {
-      const token = localStorage.getItem("spotify_access_token");
-      if (!token) return (window.location.href = "/");
-
       const player = new Spotify.Player({
-        name: "Hitster Game Player",
+        name: 'Hitster Game Player',
         getOAuthToken: cb => cb(token),
-        volume: 0.8,
+        volume: 0.8
       });
 
-      player.addListener("ready", ({ device_id }) => {
-        console.log("Spotify player ready with ID", device_id);
+      player.addListener('ready', ({ device_id }) => {
+        console.log('Spotify player ready, device ID:', device_id);
         window.spotifyDeviceId = device_id;
       });
 
-      player.addListener("initialization_error", ({ message }) =>
-        console.error("Init error", message)
-      );
-      player.addListener("authentication_error", ({ message }) => {
-        console.error("Auth error", message);
-        localStorage.removeItem("spotify_access_token");
+      player.addListener('initialization_error', ({ message }) => console.error("Init error:", message));
+      player.addListener('authentication_error', ({ message }) => {
+        console.error("Auth error:", message);
         alert("Je Spotify-token is verlopen, log opnieuw in.");
+        localStorage.removeItem("spotify_access_token");
         window.location.href = "/";
       });
 
       player.connect();
     };
-    <script src="index.js" defer></script>
+
+    // QR-code scanner setup
+    window.onload = function () {
+      const qrCodeScanner = new Html5Qrcode("qr-reader");
+
+      Html5Qrcode.getCameras().then(cameras => {
+        if (!cameras || cameras.length === 0) {
+          alert("Geen camera gevonden!");
+          return;
+        }
+
+        const selectedCam = cameras.find(cam => cam.label.toLowerCase().includes('obs')) || cameras[0];
+
+        qrCodeScanner.start(
+          { deviceId: { exact: selectedCam.id } },
+          { fps: 10, qrbox: 250 },
+          (decodedText) => {
+            console.log("QR gevonden:", decodedText);
+            if (decodedText.includes("spotify.com/track/")) {
+              const trackId = decodedText.split("/track/")[1].split("?")[0];
+              playTrack(trackId);
+              qrCodeScanner.stop();
+            }
+          },
+          (errorMessage) => {
+            console.warn("Scanfout:", errorMessage);
+          }
+        );
+      }).catch(err => {
+        console.error("Camera fout:", err);
+        alert("Kon geen camera vinden.");
+      });
+    };
+
+    function playTrack(trackId) {
+      console.log("Speel track af:", trackId);
+      fetch(`https://api.spotify.com/v1/me/player/play?device_id=${window.spotifyDeviceId}`, {
+        method: "PUT",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          uris: [`spotify:track:${trackId}`]
+        })
+      }).then(response => {
+        if (!response.ok) {
+          console.error("Track speel fout:", response);
+        } else {
+          console.log("Track speelt af 🎶");
+        }
+      });
+    }
   </script>
-  <script src="https://sdk.scdn.co/spotify-player.js"></script>
 </body>
 </html>
