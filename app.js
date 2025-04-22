@@ -27,6 +27,19 @@ function stopVideoIfPlaying() {
   }
 }
 
+function extractVideoId(text) {
+  try {
+    const url = new URL(text);
+    if (url.hostname.includes("youtu.be")) {
+      return url.pathname.slice(1);
+    } else if (url.hostname.includes("youtube.com")) {
+      return url.searchParams.get("v");
+    }
+  } catch {
+    return null;
+  }
+}
+
 function startScan() {
   stopVideoIfPlaying();
   lastVideoId = null;
@@ -46,7 +59,7 @@ function startScan() {
         return;
       }
 
-      // 👉 Zoek camera met 'back' of 'rear' in de naam
+      // Kies achterste camera, of fallback
       let selectedCam = cameras[0].id;
       for (let cam of cameras) {
         if (/back|rear/i.test(cam.label)) {
@@ -57,12 +70,15 @@ function startScan() {
 
       const config = { fps: 10, qrbox: 250 };
       html5QrCode = new Html5Qrcode('qr-reader');
-      return html5QrCode.start(
+
+      html5QrCode.start(
         { deviceId: { exact: selectedCam } },
         config,
         (decodedText) => {
-          const url = new URL(decodedText);
-          const videoId = url.searchParams.get("v");
+          console.log("📦 QR-code gescand:", decodedText);
+          const videoId = extractVideoId(decodedText);
+          console.log("🎬 videoId:", videoId);
+
           if (videoId) {
             lastVideoId = videoId;
             if (html5QrCode._isScanning) {
@@ -74,12 +90,14 @@ function startScan() {
             }
           }
         },
-        err => console.warn("Scanfout:", err)
+        err => {
+          console.warn("Scanfout:", err);
+        }
       );
     })
     .catch(e => {
-      console.error("Kon camera niet starten:", e);
-      alert("Kon camera niet starten.");
+      console.error("Camera starten mislukt:", e);
+      alert("Camera starten mislukt.");
     });
 }
 
@@ -88,6 +106,7 @@ rescanBtn.onclick = startScan;
 
 playBtn.onclick = () => {
   if (lastVideoId && player) {
+    console.log("▶️ Playing:", lastVideoId);
     player.loadVideoById(lastVideoId);
     player.playVideo();
   }
