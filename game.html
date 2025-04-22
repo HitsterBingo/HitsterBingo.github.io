@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
-  <meta charset="UTF-8" />
-  <title>Hitster Game</title>
+  <meta charset="UTF-8">
+  <title>Hitster QR Scanner</title>
+  <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8"></script>
   <style>
     body {
-      margin: 0;
       background-color: #121212;
       color: white;
       font-family: sans-serif;
@@ -14,126 +14,62 @@
       align-items: center;
       justify-content: center;
       height: 100vh;
+      margin: 0;
     }
     #qr-reader {
       width: 300px;
+      margin-bottom: 20px;
     }
-    #player {
+    #yt-container {
       display: none;
     }
+    iframe {
+      width: 0;
+      height: 0;
+      border: none;
+    }
   </style>
-
-  <!-- Correcte versie van de QR-code scanner -->
-  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-
-  <!-- Spotify Web Playback SDK -->
-  <script src="https://sdk.scdn.co/spotify-player.js"></script>
 </head>
 <body>
-  <h1>Scan een Spotify QR-code 🎶</h1>
+  <h1>Scan een QR-code 🎶</h1>
   <div id="qr-reader"></div>
-  <div id="player"></div>
+  <div id="yt-container">
+    <iframe id="yt-player" allow="autoplay" allowfullscreen></iframe>
+  </div>
 
   <script>
-    // Check for Spotify access token
-    const token = localStorage.getItem("spotify_access_token");
-    if (!token) {
-      window.location.href = "/";
-    }
+    const html5QrCode = new Html5Qrcode("qr-reader");
 
-    // Set up Spotify Web Playback SDK
-    window.onSpotifyWebPlaybackSDKReady = () => {
-      const player = new Spotify.Player({
-        name: 'Hitster Game Player',
-        getOAuthToken: cb => cb(token),
-        volume: 0.8
-      });
-
-      player.addListener('ready', ({ device_id }) => {
-        console.log('Spotify player is ready, Device ID:', device_id);
-        window.spotifyDeviceId = device_id;  // Stel de device_id correct in
-      });
-
-      player.addListener('initialization_error', ({ message }) => {
-        console.error("Initialisatie fout:", message);
-      });
-
-      player.addListener('authentication_error', ({ message }) => {
-        console.error("Authenticatie fout:", message);
-        alert("Je Spotify-token is verlopen, log opnieuw in.");
-        localStorage.removeItem("spotify_access_token");
-        window.location.href = "/";
-      });
-
-      // Controleer of de speler echt kan verbinden
-      player.connect().then(success => {
-        if (success) {
-          console.log('Spotify player verbonden');
-        } else {
-          console.log('Kan Spotify speler niet verbinden');
-        }
-      });
-    };
-
-    // QR-code scanner setup
-    window.onload = function () {
-      const qrCodeScanner = new Html5Qrcode("qr-reader");
-
-      Html5Qrcode.getCameras().then(cameras => {
-        if (!cameras || cameras.length === 0) {
-          alert("Geen camera gevonden!");
-          return;
-        }
-
-        const selectedCam = cameras.find(cam => cam.label.toLowerCase().includes('obs')) || cameras[0];
-
-        qrCodeScanner.start(
-          { deviceId: { exact: selectedCam.id } },
+    Html5Qrcode.getCameras().then(cameras => {
+      if (cameras && cameras.length) {
+        const cam = cameras[0];
+        html5QrCode.start(
+          { deviceId: { exact: cam.id } },
           { fps: 10, qrbox: 250 },
           (decodedText) => {
-            console.log("QR gevonden:", decodedText);
-            if (decodedText.includes("spotify.com/track/")) {
-              const trackId = decodedText.split("/track/")[1].split("?")[0];
-              playTrack(trackId);
-              qrCodeScanner.stop();
+            console.log("Gescande QR:", decodedText);
+            if (decodedText.includes("youtube.com/watch?v=")) {
+              const videoId = new URL(decodedText).searchParams.get("v");
+              if (videoId) {
+                const player = document.getElementById("yt-player");
+                const container = document.getElementById("yt-container");
+                player.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0&showinfo=0&rel=0&modestbranding=1`;
+                container.style.display = "block";
+                html5QrCode.stop();
+              }
             }
           },
-          (errorMessage) => {
-            console.warn("Scanfout:", errorMessage);
+          (err) => {
+            console.warn("Scanfout:", err);
           }
         );
-      }).catch(err => {
-        console.error("Camera fout:", err);
-        alert("Kon geen camera vinden.");
-      });
-    };
-
-    function playTrack(trackId) {
-      if (!window.spotifyDeviceId) {
-        console.error("Geen device_id beschikbaar!");
-        return;
+      } else {
+        alert("Geen camera gevonden!");
       }
-      console.log("Speel track af:", trackId);
-
-      fetch(`https://api.spotify.com/v1/me/player/play?device_id=${window.spotifyDeviceId}`, {
-        method: "PUT",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          uris: [`spotify:track:${trackId}`]
-        })
-      }).then(response => {
-        if (!response.ok) {
-          console.error("Fout bij het afspelen van de track:", response);
-        } else {
-          console.log("Track speelt af 🎶");
-        }
-      }).catch(error => {
-        console.error("Fout tijdens het verzoek:", error);
-      });
-    }
+    }).catch(err => {
+      console.error("Camera error", err);
+      alert("Camera niet beschikbaar.");
+    });
   </script>
 </body>
 </html>
