@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8" />
-  <title>Hitster Kaartjes</title>
+  <meta charset="UTF-8">
+  <title>Hitster Kaartjes Generator</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     body {
@@ -12,6 +12,7 @@
       text-align: center;
       padding: 2rem;
     }
+
     input[type="text"] {
       width: 80%;
       max-width: 500px;
@@ -19,11 +20,13 @@
       font-size: 16px;
       margin-bottom: 10px;
     }
+
     label {
       display: block;
       margin: 10px auto;
       font-size: 16px;
     }
+
     button {
       padding: 12px 24px;
       background: #1db954;
@@ -34,6 +37,7 @@
       cursor: pointer;
       margin-top: 10px;
     }
+
     .print-area {
       padding: 40px;
       margin: 20px auto;
@@ -41,6 +45,7 @@
       background: white;
       color: black;
     }
+
     .page {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -48,9 +53,11 @@
       gap: 20px;
       page-break-after: always;
     }
+
     .page.reverse {
       direction: rtl;
     }
+
     .card {
       aspect-ratio: 1 / 1;
       border: 1px solid #ccc;
@@ -63,21 +70,28 @@
       box-sizing: border-box;
       padding: 10px;
     }
+
     .card img {
       width: 80px;
       height: 80px;
     }
+
     .card .release {
       font-size: 18px;
       font-weight: bold;
       text-align: center;
       margin: 10px 0;
     }
+
     .card .title {
       font-size: 14px;
       font-style: italic;
       transform: rotate(-5deg);
       text-align: center;
+    }
+
+    #render-area {
+      display: none;
     }
   </style>
 </head>
@@ -87,17 +101,17 @@
   <label><input type="checkbox" id="double-sided" /> Dubbelzijdig printen</label>
   <button id="genereerBtn" onclick="genereerKaartjes()">🎵 Genereer kaartjes</button>
 
+  <div id="render-area"></div>
+
   <script>
     const apiKey = 'AIzaSyAMZBCUGGm2ZW9Lv8eEvJJPzLN6lVYypMo';
-
     const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
     function cleanTitle(title) {
-      return title
-        .replace(/\(.*?\)|\[.*?\]/g, "")
-        .replace(/official|video|HD|4K|lyrics/gi, "")
-        .replace(/[^a-zA-Z0-9\s]/g, "")
-        .trim();
+      return title.replace(/\(.*?\)|\[.*?\]/g, "")
+                  .replace(/official|video|HD|4K|lyrics/gi, "")
+                  .replace(/[^a-zA-Z0-9\s]/g, "")
+                  .trim();
     }
 
     async function fetchReleaseDate(title) {
@@ -105,17 +119,13 @@
       const url = `https://musicbrainz.org/ws/2/recording/?query=${encodeURIComponent(query)}&fmt=json&limit=1`;
       try {
         const res = await fetch(url, {
-          headers: {
-            'User-Agent': 'HitsterKaartjes/1.0 (example@example.com)'
-          }
+          headers: { 'User-Agent': 'HitsterKaartjes/1.0 (example@example.com)' }
         });
         const data = await res.json();
         if (data.recordings?.[0]?.releases?.[0]?.date) {
           return data.recordings[0].releases[0].date;
         }
-      } catch (err) {
-        console.warn("MusicBrainz error:", err);
-      }
+      } catch {}
       return null;
     }
 
@@ -156,9 +166,9 @@
           const originalTitle = snippet.title;
           const title = cleanTitle(originalTitle);
 
-          await sleep(800); // cooldown
-
+          await sleep(800);
           let release = null;
+
           const mbDate = await fetchReleaseDate(title);
           if (mbDate && /^\d{4}-\d{2}-\d{2}$/.test(mbDate)) {
             const d = new Date(mbDate);
@@ -180,8 +190,8 @@
         return;
       }
 
-      const container = document.createElement("div");
-      container.className = "print-area";
+      const renderArea = document.getElementById("render-area");
+      renderArea.innerHTML = ""; // reset
 
       for (let i = 0; i < items.length; i += 9) {
         const group = items.slice(i, i + 9);
@@ -197,7 +207,7 @@
           qrCard.appendChild(qr);
           qrPage.appendChild(qrCard);
         });
-        container.appendChild(qrPage);
+        renderArea.appendChild(qrPage);
 
         if (isDouble) {
           const infoPage = document.createElement("div");
@@ -211,7 +221,7 @@
             `;
             infoPage.appendChild(infoCard);
           });
-          container.appendChild(infoPage);
+          renderArea.appendChild(infoPage);
         } else {
           group.forEach(item => {
             const infoCard = document.createElement("div");
@@ -225,28 +235,26 @@
         }
       }
 
-      document.body.appendChild(container);
+      renderArea.style.display = "block";
 
-      const imgs = container.querySelectorAll("img");
+      const imgs = renderArea.querySelectorAll("img");
       Promise.all(Array.from(imgs).map(img =>
         img.complete ? Promise.resolve() : new Promise(res => img.onload = res)
       )).then(() => {
-        requestAnimationFrame(() => {
-          setTimeout(() => {
-            html2pdf().set({
-              filename: "playlist-kaartjes.pdf",
-              margin: [10, 10, 10, 10],
-              html2canvas: {
-                scale: 2,
-                useCORS: true,
-                scrollY: 0,
-                windowWidth: document.documentElement.scrollWidth,
-                windowHeight: document.documentElement.scrollHeight
-              },
-              jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
-            }).from(container).save();
-          }, 200);
-        });
+        setTimeout(() => {
+          html2pdf().set({
+            filename: "playlist-kaartjes.pdf",
+            margin: [10, 10, 10, 10],
+            html2canvas: {
+              scale: 2,
+              useCORS: true,
+              scrollY: 0,
+              windowWidth: document.documentElement.scrollWidth,
+              windowHeight: document.documentElement.scrollHeight
+            },
+            jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+          }).from(renderArea).save();
+        }, 300);
       });
     }
   </script>
