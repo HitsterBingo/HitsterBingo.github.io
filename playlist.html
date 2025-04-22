@@ -76,12 +76,6 @@
       height: 80px;
     }
 
-    .card .artist {
-      font-size: 14px;
-      font-weight: normal;
-      margin-bottom: 5px;
-    }
-
     .card .release {
       font-size: 18px;
       font-weight: bold;
@@ -106,9 +100,7 @@
   <script>
     const apiKey = 'AIzaSyAMZBCUGGm2ZW9Lv8eEvJJPzLN6lVYypMo';
 
-    function sleep(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
-    }
+    const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
     function cleanTitle(title) {
       return title
@@ -137,6 +129,17 @@
       return null;
     }
 
+    async function getVideoUploadDate(videoId) {
+      const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${apiKey}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.items?.[0]?.snippet?.publishedAt) {
+        const d = new Date(data.items[0].snippet.publishedAt);
+        return d.toLocaleString('nl-NL', { month: 'long', year: 'numeric' });
+      }
+      return "onbekend";
+    }
+
     async function genereerKaartjes() {
       document.getElementById("genereerBtn").style.display = "none";
 
@@ -160,21 +163,15 @@
           const videoId = item.snippet.resourceId.videoId;
           const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
 
-          await sleep(1200);
+          await sleep(800); // cooldown
+
           let release = null;
-
-          try {
-            release = await fetchReleaseDate(title);
-          } catch {
-            release = null;
-          }
-
-          if (release && /^\d{4}-\d{2}-\d{2}$/.test(release)) {
-            const d = new Date(release);
+          const mbDate = await fetchReleaseDate(title);
+          if (mbDate && /^\d{4}-\d{2}-\d{2}$/.test(mbDate)) {
+            const d = new Date(mbDate);
             release = d.toLocaleString('nl-NL', { month: 'long', year: 'numeric' });
           } else {
-            const fallback = new Date(item.snippet.publishedAt);
-            release = fallback.toLocaleString('nl-NL', { month: 'long', year: 'numeric' });
+            release = await getVideoUploadDate(videoId);
           }
 
           items.push({ title: originalTitle, release, url: videoUrl });
@@ -214,7 +211,6 @@
             const infoCard = document.createElement("div");
             infoCard.className = "card";
             infoCard.innerHTML = `
-              <div class="artist"></div>
               <div class="release">${item.release}</div>
               <div class="title">${item.title}</div>
             `;
@@ -226,7 +222,6 @@
             const infoCard = document.createElement("div");
             infoCard.className = "card";
             infoCard.innerHTML = `
-              <div class="artist"></div>
               <div class="release">${item.release}</div>
               <div class="title">${item.title}</div>
             `;
