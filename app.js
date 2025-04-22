@@ -1,50 +1,55 @@
-// 1. YouTube IFrame API & off‑screen player
+// 1. YouTube IFrame API initialiseren
 let player;
 function onYouTubeIframeAPIReady() {
   player = new YT.Player('player', {
-    height: '1',
-    width:  '1',
-    videoId: '',
-    playerVars: { autoplay: 0, controls: 0, rel: 0, modestbranding: 1 },
-    events: {
-      onReady: () => console.log('YT Player klaar')
-    }
+    height: '1', width: '1', videoId: '',
+    playerVars: { autoplay: 0, controls: 1, rel: 0, modestbranding: 1 }
   });
 }
 
-// 2. Modus‑toggle
-const scanBtn     = document.getElementById('mode-scan');
-const catBtn      = document.getElementById('mode-cat');
-const playlistBtn = document.getElementById('mode-playlist');
-const scanSec     = document.getElementById('scanner-section');
-const catSec      = document.getElementById('categories-section');
-const playSec     = document.getElementById('playlist-section');
+// 2. Modus‑switch
+const btnScan     = document.getElementById('btn-scan'),
+      btnCat      = document.getElementById('btn-cat'),
+      btnPlaylist = document.getElementById('btn-playlist'),
+      secScan     = document.getElementById('scanner-section'),
+      secCat      = document.getElementById('categories-section'),
+      secPlaylist = document.getElementById('playlist-section');
 function hideAll() {
-  scanSec.style.display = 'none';
-  catSec.style.display  = 'none';
-  playSec.style.display = 'none';
+  secScan.style.display = 'none';
+  secCat.style.display  = 'none';
+  secPlaylist.style.display = 'none';
 }
-scanBtn.addEventListener('click',     ()=>{hideAll();scanSec.style.display='block';});
-catBtn.addEventListener('click',      ()=>{hideAll();catSec.style.display='block';});
-playlistBtn.addEventListener('click', ()=>{hideAll();playSec.style.display='block';});
+btnScan.onclick     = () => { hideAll(); secScan.style.display     = 'block'; };
+btnCat.onclick      = () => { hideAll(); secCat.style.display      = 'block'; };
+btnPlaylist.onclick = () => { hideAll(); secPlaylist.style.display = 'block'; };
 // start in scan‑modus
-hideAll();
-scanSec.style.display = 'block';
+hideAll(); secScan.style.display = 'block';
 
-// 3. QR‑scanner + Play knop
-let html5QrCode, lastVideoId=null;
-const startBtn = document.getElementById('start-scan');
-const playBtn  = document.getElementById('play-video');
+// 3. QR‑scanner + Play + Rescan
+let html5QrCode, lastVid = null;
+const startBtn = document.getElementById('start-scan'),
+      playBtn  = document.getElementById('play-video'),
+      rescanBtn= document.getElementById('rescan');
 
-startBtn.addEventListener('click', () => {
-  lastVideoId = null;
-  playBtn.style.display  = 'none';
-  startBtn.style.display = 'inline-block';
+startBtn.onclick = startScan;
+rescanBtn.onclick = startScan;
+playBtn.onclick = () => {
+  if (lastVid && player) {
+    player.loadVideoById(lastVid);
+    player.playVideo();
+  }
+};
+
+function startScan() {
+  lastVid = null;
+  playBtn.style.display   = 'none';
+  rescanBtn.style.display = 'none';
+  startBtn.style.display  = 'inline-block';
+
   if (html5QrCode) html5QrCode.stop().catch(()=>{});
-
   Html5Qrcode.getCameras()
     .then(cams => {
-      const cfg = cams.length
+      const cfg = cams[0]
         ? { deviceId: { exact: cams[0].id } }
         : { facingMode: 'environment' };
       html5QrCode = new Html5Qrcode('qr-reader');
@@ -54,94 +59,81 @@ startBtn.addEventListener('click', () => {
         decoded => {
           const v = new URL(decoded).searchParams.get('v');
           if (v) {
-            lastVideoId = v;
+            lastVid = v;
             html5QrCode.stop();
-            startBtn.style.display = 'none';
-            playBtn.style.display  = 'inline-block';
+            startBtn.style.display   = 'none';
+            playBtn.style.display    = 'inline-block';
+            rescanBtn.style.display  = 'inline-block';
           }
         },
-        err => console.warn('Scan error', err)
+        err => console.warn('Scan error:', err)
       );
     })
-    .catch(e => {console.error(e);alert('Camera fout');});
-});
-
-playBtn.addEventListener('click', () => {
-  if (lastVideoId && player) {
-    player.loadVideoById(lastVideoId);
-    player.playVideo();
-  }
-});
-
-// 4. Categorieën laden & PDF‑generator
-let categories = {};
-fetch('categories.json')
-  .then(r=>r.json())
-  .then(data=>{ categories=data; renderCategoryButtons(); })
-  .catch(e=>console.error('Kon categories.json niet laden',e));
-
-function renderCategoryButtons(){
-  const cdiv = document.getElementById('categories');
-  cdiv.innerHTML = '';
-  Object.keys(categories).forEach(cat => {
-    const btn = document.createElement('button');
-    btn.textContent = cat;
-    btn.onclick = () => generatePdfForCategory(cat);
-    cdiv.appendChild(btn);
-  });
+    .catch(e => alert('Kon camera niet starten'));
 }
 
-function generatePdfForCategory(cat){
-  const items = categories[cat];
-  if (!Array.isArray(items)) {
-    return alert(`Categorie “${cat}” ondersteunt nog geen kaartjes.`);
-  }
-  const container = document.createElement('div');
-  container.className = 'print-area';
+// 4. Categorieën inladen & PDF‑maker
+let categories = {};
+fetch('categories.json')
+  .then(r => r.json())
+  .then(data => {
+    categories = data;
+    const cdiv = document.getElementById('categories');
+    cdiv.innerHTML = '';
+    Object.keys(categories).forEach(cat => {
+      const b = document.createElement('button');
+      b.textContent = cat;
+      b.onclick = () => makePDF(cat, categories[cat]);
+      cdiv.appendChild(b);
+    });
+  })
+  .catch(e => alert('Kon categories.json niet laden'));
 
-  items.forEach(item=>{
-    const front = document.createElement('div');
-    front.className = 'card card-front';
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(item.url)}`;
+function makePDF(catName, items) {
+  if (!Array.isArray(items) || items.length === 0) {
+    return alert(`Categorie "${catName}" heeft geen items.`);
+  }
+  // Container
+  const ctr = document.createElement('div');
+  ctr.className = 'print-area';
+  document.body.appendChild(ctr);
+
+  items.forEach(it => {
+    // Front
+    const f = document.createElement('div');
+    f.className = 'card card-front';
     const img = document.createElement('img');
     img.crossOrigin = 'anonymous';
-    img.src = qrUrl;
-    front.append(img, document.createTextNode('Scan mij!'));
-
-    const back = document.createElement('div');
-    back.className = 'card card-back';
-    back.innerHTML = `
-      <div class="title">${item.title}</div>
-      <div class="artist">${item.artist}</div>
-      <div class="release">${item.release}</div>
+    img.src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(it.url)}`;
+    f.appendChild(img);
+    f.append('Scan mij!');
+    // Back
+    const b = document.createElement('div');
+    b.className = 'card card-back';
+    b.innerHTML = `
+      <div class="title">${it.title}</div>
+      <div class="artist">${it.artist}</div>
+      <div class="release">${it.release}</div>
     `;
-    container.append(front, back);
+    ctr.appendChild(f);
+    ctr.appendChild(b);
   });
 
-  document.body.appendChild(container);
-  const imgs = Array.from(container.querySelectorAll('img'));
-  Promise.all(imgs.map(i=>new Promise(r=>i.complete? r(): i.onload = r)))
-    .then(()=> html2pdf()
-      .set({ margin:10, filename:`${cat}.pdf`, html2canvas:{scale:2, useCORS:true} })
-      .from(container).save()
-    )
-    .then(()=>container.remove())
-    .catch(e=>{
-      console.error('PDF fout',e);
-      alert('PDF genereren mislukt');
-      container.remove();
-    });
+  // Wacht tot alle QR‑img geladen
+  const imgs = ctr.querySelectorAll('img');
+  Promise.all(Array.from(imgs).map(i => i.complete ? Promise.resolve() : new Promise(r => i.onload = r)))
+    .then(() => html2pdf().set({ filename: `${catName}.pdf`, margin:10, html2canvas:{ scale:2, useCORS:true } }).from(ctr).save())
+    .then(() => ctr.remove())
+    .catch(() => { alert('PDF genereren mislukt'); ctr.remove(); });
 }
 
 // 5. Playlist loader
-document.getElementById('load-playlist').addEventListener('click',()=>{
-  const raw = document.getElementById('playlist-url').value;
+document.getElementById('load-playlist').onclick = () => {
   try {
+    const raw = document.getElementById('playlist-url').value;
     const listId = new URL(raw).searchParams.get('list');
-    if(!listId) throw '';
+    if (!listId) throw '';
     player.loadPlaylist({ listType:'playlist', list:listId, index:0 });
     player.playVideo();
   } catch {
-    alert('Ongeldige playlist‑URL');
-  }
-});
+    alert
