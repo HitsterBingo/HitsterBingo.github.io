@@ -3,8 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <title>Hitster Game</title>
-  <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8"></script>
-  <script src="https://sdk.scdn.co/spotify-player.js"></script>
   <style>
     body {
       margin: 0;
@@ -20,52 +18,21 @@
     #qr-reader {
       width: 300px;
     }
-    #player {
-      display: none;
-    }
   </style>
 </head>
 <body>
   <h1>Scan een Spotify QR-code 🎶</h1>
   <div id="qr-reader"></div>
-  <div id="player"></div>
 
+  <!-- Load HTML5 QR Code lib -->
+  <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8"></script>
+
+  <!-- Start QR code scanner -->
   <script>
-    // Check if access_token is present
-    const token = localStorage.getItem("spotify_access_token");
-    if (!token) {
-      window.location.href = "/";
-    }
+    window.onload = function () {
+      const token = localStorage.getItem("spotify_access_token");
+      if (!token) return (window.location.href = "/");
 
-    // Set up Spotify Web Playback SDK
-    window.onSpotifyWebPlaybackSDKReady = () => {
-      const player = new Spotify.Player({
-        name: 'Hitster Game Player',
-        getOAuthToken: cb => { cb(token); },
-        volume: 0.8
-      });
-
-      player.addListener('ready', ({ device_id }) => {
-        console.log('Ready with Device ID', device_id);
-        window.spotifyDeviceId = device_id;
-      });
-
-      player.addListener('initialization_error', ({ message }) => {
-        console.error(message);
-      });
-
-      player.addListener('authentication_error', ({ message }) => {
-        console.error(message);
-        alert('Je Spotify-token is verlopen, log opnieuw in.');
-        localStorage.removeItem('spotify_access_token');
-        window.location.href = '/';
-      });
-
-      player.connect();
-    };
-
-    // Start QR code scanner after library is loaded
-    window.onload = function() {
       const html5QrCode = new Html5Qrcode("qr-reader");
 
       Html5Qrcode.getCameras().then(cameras => {
@@ -93,16 +60,19 @@
         console.error("Camera error", err);
         alert("Kon geen camera vinden.");
       });
-    }
+    };
 
     function playTrack(trackId) {
-      console.log("Speel track af:", trackId);
+      if (!window.spotifyDeviceId) {
+        return console.error("Spotify device niet klaar");
+      }
+
       fetch(`https://api.spotify.com/v1/me/player/play?device_id=${window.spotifyDeviceId}`, {
         method: 'PUT',
         body: JSON.stringify({ uris: [`spotify:track:${trackId}`] }),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${localStorage.getItem("spotify_access_token")}`
         },
       }).then(res => {
         if (!res.ok) {
@@ -113,5 +83,37 @@
       });
     }
   </script>
+
+  <!-- Spotify SDK + init -->
+  <script>
+    window.onSpotifyWebPlaybackSDKReady = () => {
+      const token = localStorage.getItem("spotify_access_token");
+      if (!token) return (window.location.href = "/");
+
+      const player = new Spotify.Player({
+        name: "Hitster Game Player",
+        getOAuthToken: cb => cb(token),
+        volume: 0.8,
+      });
+
+      player.addListener("ready", ({ device_id }) => {
+        console.log("Spotify player ready with ID", device_id);
+        window.spotifyDeviceId = device_id;
+      });
+
+      player.addListener("initialization_error", ({ message }) =>
+        console.error("Init error", message)
+      );
+      player.addListener("authentication_error", ({ message }) => {
+        console.error("Auth error", message);
+        localStorage.removeItem("spotify_access_token");
+        alert("Je Spotify-token is verlopen, log opnieuw in.");
+        window.location.href = "/";
+      });
+
+      player.connect();
+    };
+  </script>
+  <script src="https://sdk.scdn.co/spotify-player.js"></script>
 </body>
 </html>
