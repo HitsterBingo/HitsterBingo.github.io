@@ -9,7 +9,7 @@ function onYouTubeIframeAPIReady() {
   });
 }
 
-// === 2. Modus‑toggle ===
+// === 2. Mode‑toggle ===
 const scanBtn     = document.getElementById('mode-scan');
 const catBtn      = document.getElementById('mode-cat');
 const playlistBtn = document.getElementById('mode-playlist');
@@ -22,11 +22,10 @@ function hideAll() {
   catSec.style.display  = 'none';
   playSec.style.display = 'none';
 }
-// Event listeners
-scanBtn.addEventListener('click', () => { hideAll(); scanSec.style.display = 'block'; });
-catBtn.addEventListener('click',  () => { hideAll(); catSec .style.display = 'block'; });
-playlistBtn.addEventListener('click', () => { hideAll(); playSec.style.display = 'block'; });
-// Init: start in scan‑modus
+scanBtn.addEventListener('click',     () => { hideAll(); scanSec.style.display     = 'block'; });
+catBtn.addEventListener('click',      () => { hideAll(); catSec .style.display     = 'block'; });
+playlistBtn.addEventListener('click', () => { hideAll(); playSec.style.display     = 'block'; });
+// Start in scan‑modus
 hideAll();
 scanSec.style.display = 'block';
 
@@ -39,7 +38,7 @@ document.getElementById('start-scan').addEventListener('click', () => {
     decoded => {
       if (decoded.includes('youtube.com/watch?')) {
         const v = new URL(decoded).searchParams.get('v');
-        if (v) {
+        if (v && player) {
           html5QrCode.stop();
           player.loadVideoById(v);
           player.playVideo();
@@ -62,7 +61,7 @@ fetch('categories.json')
 
 function renderCategoryButtons() {
   const cdiv = document.getElementById('categories');
-  cdiv.innerHTML = '';
+  cdiv.innerHTML = '';  // clear
   Object.keys(categories).forEach(cat => {
     const btn = document.createElement('button');
     btn.textContent = cat;
@@ -77,18 +76,17 @@ function generatePdfForCategory(cat) {
     return alert(`Categorie “${cat}” ondersteunt geen kaartjes.`);
   }
 
-  // Container voor kaartjes
   const container = document.createElement('div');
   container.className = 'print-area';
 
   items.forEach(item => {
-    // Voorkant
+    // Voorkant: QR
     const front = document.createElement('div');
     front.className = 'card card-front';
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(item.url)}`;
     front.innerHTML = `<img src="${qrUrl}" alt="QR"><div>Scan mij!</div>`;
 
-    // Achterkant
+    // Achterkant: info
     const back = document.createElement('div');
     back.className = 'card card-back';
     back.innerHTML = `
@@ -101,7 +99,6 @@ function generatePdfForCategory(cat) {
     container.appendChild(back);
   });
 
-  // Generate en save PDF
   document.body.appendChild(container);
   html2pdf()
     .set({ margin: 10, filename: `${cat}.pdf`, html2canvas: { scale: 2 } })
@@ -119,6 +116,6 @@ document.getElementById('load-playlist').addEventListener('click', () => {
     player.loadPlaylist({ listType: 'playlist', list: listId, index: 0 });
     player.playVideo();
   } catch {
-    alert('Ongeldige playlist-URL');
+    alert('Ongeldige playlist‑URL');
   }
 });
