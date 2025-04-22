@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8" />
-  <title>Hitster Kaartjes Printen</title>
+  <meta charset="UTF-8">
+  <title>Hitster Kaartjes per Categorie</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     body {
@@ -37,32 +37,43 @@
       border: 1px solid #ccc;
       display: flex;
       flex-direction: column;
+      justify-content: space-between;
       align-items: center;
-      justify-content: center;
       page-break-inside: avoid;
       padding: 10px;
+      background: white;
+      color: black;
     }
 
     .card img {
       width: 120px;
       height: 120px;
-      margin-bottom: 10px;
     }
 
-    .card-back .title {
-      font-weight: bold;
-    }
-
-    .card-back .artist,
-    .card-back .release {
+    .artist {
       font-size: 14px;
-      color: #ccc;
+      margin-top: 5px;
+    }
+
+    .release {
+      font-size: 20px;
+      font-weight: bold;
+      text-align: center;
+      margin: auto 0;
+    }
+
+    .title {
+      font-size: 16px;
+      font-style: italic;
+      transform: rotate(-5deg);
+      margin-bottom: 10px;
     }
   </style>
 </head>
 <body>
-  <h1>Print je Hitster-kaartjes 🎶</h1>
+  <h1>Selecteer een categorie</h1>
   <div id="buttons"></div>
+
   <script src="kaartjes.js"></script>
 </body>
 </html>
