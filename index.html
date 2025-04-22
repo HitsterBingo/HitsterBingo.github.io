@@ -5,80 +5,25 @@
   <title>Hitster Game</title>
   <!-- QR‑scanner -->
   <script src="https://unpkg.com/html5-qrcode"></script>
-  <!-- YouTube IFrame API (voor playlist of QR‑scan video‑preview indien gewenst) -->
+  <!-- YouTube IFrame API -->
   <script src="https://www.youtube.com/iframe_api"></script>
-  <!-- html2pdf.js voor PDF‑export -->
+  <!-- html2pdf.js voor PDF-export -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
   <style>
-    body {
-      background: #121212;
-      color: white;
-      font-family: sans-serif;
-      text-align: center;
-      margin: 0;
-      padding: 20px;
-    }
-    #mode-buttons {
-      margin-bottom: 20px;
-    }
-    button {
-      margin: 5px;
-      padding: 12px 24px;
-      font-size: 16px;
-      background: #1db954;
-      border: none;
-      border-radius: 8px;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #1ed760;
-    }
-    section {
-      display: none;
-    }
-    /* PDF‑kaartjes stijl */
-    .print-area {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-    .card {
-      background: #1e1e1e;
-      border: 2px solid #1db954;
-      border-radius: 12px;
-      width: 180px;
-      height: 260px;
-      margin: 10px;
-      box-sizing: border-box;
-      padding: 10px;
-      page-break-inside: avoid;
-    }
-    .card-front, .card-back {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-    }
-    .card-front img {
-      width: 120px;
-      height: 120px;
-      margin-bottom: 10px;
-    }
-    .card-back .title {
-      font-weight: bold;
-      font-size: 14px;
-      margin-bottom: 6px;
-    }
-    .card-back .artist {
-      font-size: 12px;
-      margin-bottom: 4px;
-    }
-    .card-back .release {
-      font-size: 11px;
-      color: #aaa;
-    }
+    body { background: #121212; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 20px; }
+    #mode-buttons { margin-bottom: 20px; }
+    button { margin: 5px; padding: 12px 24px; font-size: 16px; background: #1db954; border: none; border-radius: 8px; color: white; cursor: pointer; }
+    button:hover { background: #1ed760; }
+    section { display: none; }
+    /* Kaartjes‑stijl */
+    .print-area { display: flex; flex-wrap: wrap; justify-content: center; }
+    .card { background: #1e1e1e; border: 2px solid #1db954; border-radius: 12px; width: 180px; height: 260px; margin: 10px; padding: 10px; box-sizing: border-box; page-break-inside: avoid; }
+    .card-front, .card-back { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
+    .card-front img { width: 120px; height: 120px; margin-bottom: 10px; }
+    .card-back .title  { font-weight: bold; font-size: 14px; margin-bottom: 6px; }
+    .card-back .artist { font-size: 12px; margin-bottom: 4px; }
+    .card-back .release{ font-size: 11px; color: #aaa; }
+    #playlist-url { width: 80%; padding: 8px; margin: 10px 0; border-radius: 4px; border: none; }
   </style>
 </head>
 <body>
@@ -89,28 +34,28 @@
     <button id="mode-playlist">Playlist</button>
   </div>
 
-  <!-- Scanner -->
+  <!-- Scan QR -->
   <section id="scanner-section">
     <h2>📷 Scan een YouTube QR‑code</h2>
     <div id="qr-reader"></div>
     <button id="start-scan">▶️ Start Scannen</button>
   </section>
 
-  <!-- Categorieën -->
+  <!-- Kies Categorie en genereer PDF -->
   <section id="categories-section">
     <h2>🎵 Kies een categorie voor PDF‑kaartjes</h2>
     <div id="categories"></div>
   </section>
 
-  <!-- Playlist -->
+  <!-- Plak Playlist URL -->
   <section id="playlist-section">
     <h2>📋 Plak YouTube Playlist Link</h2>
-    <input type="text" id="playlist-url" placeholder="https://www.youtube.com/playlist?list=..." style="width:80%; padding:8px;"/>
+    <input type="text" id="playlist-url" placeholder="https://www.youtube.com/playlist?list=..." />
     <button id="load-playlist">▶️ Laad Playlist</button>
   </section>
 
-  <!-- (Optioneel) YouTube Player -->
-  <div id="player"></div>
+  <!-- YouTube Player (verborgen) -->
+  <div id="player" style="display:none;"></div>
 
   <script src="app.js"></script>
 </body>
