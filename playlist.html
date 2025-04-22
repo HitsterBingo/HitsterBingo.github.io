@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
-  <title>Hitster Playlist naar Kaartjes</title>
+  <title>Hitster Kaartjes</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     body {
@@ -118,8 +118,8 @@
         .trim();
     }
 
-    async function fetchReleaseDate(title, artist) {
-      const query = `recording:"${title}" AND artist:"${artist}"`;
+    async function fetchReleaseDate(title) {
+      const query = `recording:"${title}"`;
       const url = `https://musicbrainz.org/ws/2/recording/?query=${encodeURIComponent(query)}&fmt=json&limit=1`;
       try {
         const res = await fetch(url, {
@@ -157,17 +157,14 @@
         for (const item of data.items) {
           const originalTitle = item.snippet.title;
           const title = cleanTitle(originalTitle);
-          const rawArtist = item.snippet.videoOwnerChannelTitle || item.snippet.channelTitle || "Onbekend";
-          const artist = rawArtist.replace(/vevo/gi, '').trim();
           const videoId = item.snippet.resourceId.videoId;
           const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
 
           await sleep(1200);
           let release = null;
-          let source = "musicbrainz";
 
           try {
-            release = await fetchReleaseDate(title, artist);
+            release = await fetchReleaseDate(title);
           } catch {
             release = null;
           }
@@ -178,10 +175,9 @@
           } else {
             const fallback = new Date(item.snippet.publishedAt);
             release = fallback.toLocaleString('nl-NL', { month: 'long', year: 'numeric' });
-            source = "yt";
           }
 
-          items.push({ title: originalTitle, artist, release, url: videoUrl, source });
+          items.push({ title: originalTitle, release, url: videoUrl });
         }
 
         nextPageToken = data.nextPageToken || null;
@@ -218,8 +214,8 @@
             const infoCard = document.createElement("div");
             infoCard.className = "card";
             infoCard.innerHTML = `
-              <div class="artist">${item.artist}</div>
-              <div class="release">${item.release} ${item.source === "yt" ? "(YT)" : ""}</div>
+              <div class="artist"></div>
+              <div class="release">${item.release}</div>
               <div class="title">${item.title}</div>
             `;
             infoPage.appendChild(infoCard);
@@ -230,8 +226,8 @@
             const infoCard = document.createElement("div");
             infoCard.className = "card";
             infoCard.innerHTML = `
-              <div class="artist">${item.artist}</div>
-              <div class="release">${item.release} ${item.source === "yt" ? "(YT)" : ""}</div>
+              <div class="artist"></div>
+              <div class="release">${item.release}</div>
               <div class="title">${item.title}</div>
             `;
             qrPage.appendChild(infoCard);
