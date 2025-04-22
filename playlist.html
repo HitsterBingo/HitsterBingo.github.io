@@ -39,14 +39,18 @@
     }
 
     .print-area {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 20px;
       padding: 40px;
       margin: 20px auto;
       max-width: 1100px;
       background: white;
       color: black;
+    }
+
+    .page {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 20px;
+      page-break-after: always;
     }
 
     .card {
@@ -61,7 +65,6 @@
       flex-direction: column;
       position: relative;
       box-sizing: border-box;
-      page-break-inside: avoid;
     }
 
     .card img {
@@ -137,6 +140,11 @@
       container.className = "print-area";
 
       if (isDouble) {
+        const frontPage = document.createElement("div");
+        frontPage.className = "page";
+        const backPage = document.createElement("div");
+        backPage.className = "page";
+
         items.forEach(item => {
           const front = document.createElement("div");
           front.className = "card";
@@ -144,7 +152,7 @@
           qr.crossOrigin = "anonymous";
           qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(item.url)}`;
           front.appendChild(qr);
-          container.appendChild(front);
+          frontPage.appendChild(front);
 
           const back = document.createElement("div");
           back.className = "card";
@@ -153,9 +161,16 @@
             <div class="release">${item.release}</div>
             <div class="title">${item.title}</div>
           `;
-          container.appendChild(back);
+          backPage.appendChild(back);
         });
+
+        container.appendChild(frontPage);
+        container.appendChild(backPage);
+
       } else {
+        const singlePage = document.createElement("div");
+        singlePage.className = "page";
+
         items.forEach(item => {
           const card = document.createElement("div");
           card.className = "card";
@@ -180,8 +195,10 @@
           title.textContent = item.title;
           card.appendChild(title);
 
-          container.appendChild(card);
+          singlePage.appendChild(card);
         });
+
+        container.appendChild(singlePage);
       }
 
       document.body.appendChild(container);
