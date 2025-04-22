@@ -141,42 +141,36 @@
       container.className = "print-area";
 
       if (isDouble) {
-        const qrPage = document.createElement("div");
-        qrPage.className = "page";
-        const infoPage = document.createElement("div");
-        infoPage.className = "page";
+        for (let i = 0; i < items.length; i += 9) {
+          const group = items.slice(i, i + 9);
 
-        items.forEach((item, index) => {
-          const qrCard = document.createElement("div");
-          qrCard.className = "card";
-          const qr = document.createElement("img");
-          qr.crossOrigin = "anonymous";
-          qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(item.url)}`;
-          qrCard.appendChild(qr);
-          qrPage.appendChild(qrCard);
-
-          const infoCard = document.createElement("div");
-          infoCard.className = "card";
-          infoCard.innerHTML = `
-            <div class="artist">${item.artist}</div>
-            <div class="release">${item.release}</div>
-            <div class="title">${item.title}</div>
-          `;
-          infoPage.appendChild(infoCard);
-
-          if ((index + 1) % 9 === 0) {
-            container.appendChild(qrPage.cloneNode(true));
-            container.appendChild(infoPage.cloneNode(true));
-            qrPage.innerHTML = '';
-            infoPage.innerHTML = '';
-          }
-        });
-
-        if (qrPage.childNodes.length) {
+          const qrPage = document.createElement("div");
+          qrPage.className = "page";
+          group.forEach(item => {
+            const qrCard = document.createElement("div");
+            qrCard.className = "card";
+            const qr = document.createElement("img");
+            qr.crossOrigin = "anonymous";
+            qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(item.url)}`;
+            qrCard.appendChild(qr);
+            qrPage.appendChild(qrCard);
+          });
           container.appendChild(qrPage);
+
+          const infoPage = document.createElement("div");
+          infoPage.className = "page";
+          group.slice().reverse().forEach(item => {
+            const infoCard = document.createElement("div");
+            infoCard.className = "card";
+            infoCard.innerHTML = `
+              <div class="artist">${item.artist}</div>
+              <div class="release">${item.release}</div>
+              <div class="title">${item.title}</div>
+            `;
+            infoPage.appendChild(infoCard);
+          });
           container.appendChild(infoPage);
         }
-
       } else {
         let page = document.createElement("div");
         page.className = "page";
@@ -204,7 +198,6 @@
             page.className = "page";
           }
         });
-
         if (page.childNodes.length) container.appendChild(page);
       }
 
