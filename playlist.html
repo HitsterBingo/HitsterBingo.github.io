@@ -32,10 +32,11 @@
     }
 
     .print-area {
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
       gap: 20px;
       padding: 40px;
+      margin: 20px;
     }
 
     .card {
@@ -101,21 +102,35 @@
       const listId = new URL(url).searchParams.get("list");
       if (!listId) return alert("Geen geldige playlistlink.");
 
-      // Simuleer opgehaalde video's (vervang dit later door echte API call)
-      const videos = Array.from({ length: 50 }, (_, i) => {
-        const maand = new Date(2023, i % 12, 1).toLocaleString('nl-NL', { month: 'long', year: 'numeric' });
-        return {
-          title: `Titel ${i + 1}`,
-          artist: `Kanaal ${i + 1}`,
-          release: maand,
-          url: `https://www.youtube.com/watch?v=video${i + 1}`
-        };
-      });
+      const apiKey = 'AIzaSyAMZBCUGGm2ZW9Lv8eEvJJPzLN6lVYypMo';
+      const items = [];
+      let nextPageToken = '';
+      let totalFetched = 0;
+
+      while (nextPageToken !== null && totalFetched < 50) {
+        const apiUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${listId}&key=${apiKey}&pageToken=${nextPageToken}`;
+        const res = await fetch(apiUrl);
+        const data = await res.json();
+        if (!data.items) break;
+
+        data.items.forEach(item => {
+          const title = item.snippet.title;
+          const artist = item.snippet.videoOwnerChannelTitle || item.snippet.channelTitle;
+          const publishedAt = new Date(item.snippet.publishedAt);
+          const maandJaar = publishedAt.toLocaleString('nl-NL', { month: 'long', year: 'numeric' });
+          const videoId = item.snippet.resourceId.videoId;
+          const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+          items.push({ title, artist, release: maandJaar, url: videoUrl });
+        });
+
+        nextPageToken = data.nextPageToken || null;
+        totalFetched = items.length;
+      }
 
       const container = document.createElement("div");
       container.className = "print-area";
 
-      videos.forEach(item => {
+      items.slice(0, 50).forEach(item => {
         // voorkant
         const front = document.createElement("div");
         front.className = "card card-front";
@@ -143,7 +158,7 @@
         img.complete ? Promise.resolve() : new Promise(res => img.onload = res)
       )).then(() => {
         html2pdf()
-          .set({ filename: `playlist-kaartjes.pdf`, html2canvas: { scale: 2, useCORS: true } })
+          .set({ filename: `playlist-kaartjes.pdf`, margin: 10, html2canvas: { scale: 2, useCORS: true } })
           .from(container)
           .save()
           .then(() => container.remove());
