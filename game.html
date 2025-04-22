@@ -51,18 +51,28 @@
 
       player.addListener('ready', ({ device_id }) => {
         console.log('Spotify player is ready, Device ID:', device_id);
-        window.spotifyDeviceId = device_id; // Stel de device_id correct in
+        window.spotifyDeviceId = device_id;  // Stel de device_id correct in
       });
 
-      player.addListener('initialization_error', ({ message }) => console.error("Init error:", message));
+      player.addListener('initialization_error', ({ message }) => {
+        console.error("Initialisatie fout:", message);
+      });
+
       player.addListener('authentication_error', ({ message }) => {
-        console.error("Auth error:", message);
+        console.error("Authenticatie fout:", message);
         alert("Je Spotify-token is verlopen, log opnieuw in.");
         localStorage.removeItem("spotify_access_token");
         window.location.href = "/";
       });
 
-      player.connect();
+      // Controleer of de speler echt kan verbinden
+      player.connect().then(success => {
+        if (success) {
+          console.log('Spotify player verbonden');
+        } else {
+          console.log('Kan Spotify speler niet verbinden');
+        }
+      });
     };
 
     // QR-code scanner setup
