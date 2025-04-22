@@ -34,16 +34,16 @@
     .print-area {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 20px;
-      padding: 40px;
-      margin: 20px;
+      gap: 30px;
+      padding: 60px;
+      margin: 40px;
+      page-break-inside: avoid;
     }
 
     .card {
       width: 180px;
       height: 240px;
       border: 1px solid #ccc;
-      page-break-inside: avoid;
       background: white;
       color: black;
       display: flex;
@@ -52,6 +52,7 @@
       position: relative;
       padding: 10px;
       box-sizing: border-box;
+      break-inside: avoid;
     }
 
     .card-front img {
