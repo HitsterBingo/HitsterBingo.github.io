@@ -94,7 +94,7 @@ function renderCategoryButtons(){
 function generatePdfForCategory(cat){
   const items = categories[cat];
   if (!Array.isArray(items)) {
-    return alert(`Categorie “${cat}” ondersteunt geen kaartjes.`);
+    return alert(`Categorie “${cat}” ondersteunt nog geen kaartjes.`);
   }
   const container = document.createElement('div');
   container.className = 'print-area';
