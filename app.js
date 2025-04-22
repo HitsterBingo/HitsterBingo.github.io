@@ -28,7 +28,7 @@ function stopVideoIfPlaying() {
 }
 
 function startScan() {
-  stopVideoIfPlaying(); // 🛑 Stop muziek bij opnieuw scannen
+  stopVideoIfPlaying();
   lastVideoId = null;
 
   playBtn.style.display   = 'none';
@@ -39,39 +39,48 @@ function startScan() {
     html5QrCode.stop().catch(() => {});
   }
 
-  const config = {
-    fps: 10,
-    qrbox: 250
-  };
+  Html5Qrcode.getCameras()
+    .then(cameras => {
+      if (!cameras || cameras.length === 0) {
+        alert("Geen camera gevonden");
+        return;
+      }
 
-  // ✅ Achtercamera (standaard voor telefoons)
-  const cameraConfig = { facingMode: "environment" };
-
-  html5QrCode = new Html5Qrcode('qr-reader');
-  html5QrCode.start(
-    cameraConfig,
-    config,
-    (decodedText) => {
-      const url = new URL(decodedText);
-      const videoId = url.searchParams.get("v");
-      if (videoId) {
-        lastVideoId = videoId;
-        if (html5QrCode._isScanning) {
-          html5QrCode.stop().then(() => {
-            startBtn.style.display  = 'none';
-            playBtn.style.display   = 'inline-block';
-            rescanBtn.style.display = 'inline-block';
-          });
+      // 👉 Zoek camera met 'back' of 'rear' in de naam
+      let selectedCam = cameras[0].id;
+      for (let cam of cameras) {
+        if (/back|rear/i.test(cam.label)) {
+          selectedCam = cam.id;
+          break;
         }
       }
-    },
-    (error) => {
-      console.warn("Scanfout:", error);
-    }
-  ).catch((err) => {
-    console.error("Start scanner mislukt:", err);
-    alert("Kon camera niet starten.");
-  });
+
+      const config = { fps: 10, qrbox: 250 };
+      html5QrCode = new Html5Qrcode('qr-reader');
+      return html5QrCode.start(
+        { deviceId: { exact: selectedCam } },
+        config,
+        (decodedText) => {
+          const url = new URL(decodedText);
+          const videoId = url.searchParams.get("v");
+          if (videoId) {
+            lastVideoId = videoId;
+            if (html5QrCode._isScanning) {
+              html5QrCode.stop().then(() => {
+                startBtn.style.display  = 'none';
+                playBtn.style.display   = 'inline-block';
+                rescanBtn.style.display = 'inline-block';
+              });
+            }
+          }
+        },
+        err => console.warn("Scanfout:", err)
+      );
+    })
+    .catch(e => {
+      console.error("Kon camera niet starten:", e);
+      alert("Kon camera niet starten.");
+    });
 }
 
 startBtn.onclick  = startScan;
