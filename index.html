@@ -5,9 +5,9 @@
   <title>Hitster Game</title>
   <!-- html2pdf.js voor PDF-export -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
-  <!-- html5-qrcode voor QR‑scannen -->
+  <!-- html5-qrcode voor QR‑scanner -->
   <script src="https://unpkg.com/html5-qrcode"></script>
-  <!-- YouTube IFrame API -->
+  <!-- YouTube IFrame API voor video-afspelen -->
   <script src="https://www.youtube.com/iframe_api"></script>
   <style>
     body { background: #121212; color: #fff; font-family: sans-serif; text-align: center; padding: 20px; }
@@ -33,16 +33,16 @@
     <button id="btn-playlist">Playlist</button>
   </div>
 
-  <!-- QR Scanner -->
+  <!-- Scanner -->
   <section id="scanner-section">
-    <h2>📷 QR‑code scannen</h2>
+    <h2>📷 Scan een YouTube QR‑code</h2>
     <div id="qr-reader" style="width:100%;max-width:360px;margin:auto;"></div>
     <button id="start-scan">▶️ Start Scannen</button>
     <button id="play-video" style="display:none;">▶️ Speel Video</button>
     <button id="rescan" style="display:none;">🔄 Scan Opnieuw</button>
   </section>
 
-  <!-- Categorieën (PDF maker) -->
+  <!-- Categorieën (PDF) -->
   <section id="categories-section">
     <h2>🎵 Kies een categorie</h2>
     <div id="categories"></div>
@@ -50,7 +50,7 @@
 
   <!-- Playlist loader -->
   <section id="playlist-section">
-    <h2>📋 YouTube Playlist</h2>
+    <h2>📋 YouTube Playlist URL</h2>
     <input id="playlist-url" placeholder="https://www.youtube.com/playlist?list=..." />
     <button id="load-playlist">▶️ Laad Playlist</button>
   </section>
