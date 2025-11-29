@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mystery Cache - Geocaching</title>
+    <style>
+        /* Reset en basis */
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{-webkit-font-smoothing:antialiased;background:#fff;color:#4a4a4a;font-family:"Noto Sans",Arial,Helvetica,sans-serif;font-size:.875rem;line-height:1.3}
+        
+        /* CONFIGURATIE */
+        .config{display:none}
+        
+        /* Navigation */
+        nav{background-color:#02874d;height:80px;min-width:990px}
+        nav .wrapper{align-items:center;display:flex;margin:0 auto;max-width:1300px;padding:0 32px;height:100%}
+        .logo{color:#fff;font-size:20px;font-weight:bold}
+        
+        /* Container */
+        .container{width:950px;margin:0 auto;padding:1.5em 20px;background:#fff}
+        
+        /* Cache Details */
+        .span-17{float:left;width:670px;margin-right:10px}
+        .span-6{width:230px}
+        .last{margin-right:0}
+        .sidebar{float:right}
+        .prepend-1{padding-left:40px}
+        
+        h1,.h1{font-size:1.5rem;font-weight:bold;margin-bottom:.5em}
+        h2,.h2{font-size:1.125rem;font-weight:bold;margin-bottom:.5em}
+        h3,.h3{font-size:.875rem;font-weight:bold;margin-bottom:.5em}
+        
+        .BottomSpacing{margin-bottom:1.5em}
+        .Clear{clear:both}
+        .FloatRight{float:right}
+        .AlignCenter{text-align:center}
+        
+        /* Cache Title */
+        .cacheDetailsTitle{display:flex;align-items:center;margin-bottom:1rem}
+        .cacheImage{margin-right:1em}
+        .cache-icon{width:48px;height:48px;fill:#02874d}
+        
+        .minorCacheDetails{color:#717073;font-size:12px;margin-bottom:.5em}
+        .minorCacheDetails a{color:#3d76c5;text-decoration:none}
+        .minorCacheDetails a:hover{text-decoration:underline}
+        
+        /* Difficulty/Terrain */
+        .CacheStarLabels{float:left}
+        .CacheStarLabels dl{margin-bottom:.5em}
+        .CacheStarLabels dt{float:left;margin-right:.5em;font-weight:normal}
+        .CacheStarLabels dd{margin-left:0}
+        
+        .CacheSize{float:left;text-align:center}
+        .CacheSize p{margin:0}
+        
+        /* Favorite */
+        .favorite{float:right;margin-top:6px}
+        .favorite-container{background-color:#f0edeb;border-radius:5px;padding:.5em 1em;cursor:pointer;white-space:nowrap}
+        .favorite-value{font-size:18px;font-weight:bold;background:url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0iI2UwYjcwYSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNOCAxLjVsMS45IDUuOGg2LjFsLTQuOSAzLjYgMS45IDUuOEw4IDEzLjEgMy4xIDE2LjdsMS45LTUuOEwwIDcuM2g2LjF6Ii8+PC9zdmc+) no-repeat left center;padding-left:1.2em;background-size:16px}
+        
+        /* Cache Info */
+        .CacheInformationTable{width:100%;border:1px solid #c0cee3;margin:1.5em 0;background:#fff}
+        .CacheInformationTable .LocationData{background-color:#eff4f9;border-bottom:1px solid #c0cee3;padding:.5em}
+        .CacheInformationTable .DownloadLinks{padding:.5em}
+        .CacheInformationTable dl{margin:0;padding:0}
+        .CacheInformationTable dt{float:left;font-weight:bold;margin-right:.5em}
+        .CacheInformationTable dd{margin:0}
+        
+        /* Description */
+        .UserSuppliedContent{margin:1.5em 0;line-height:1.6}
+        
+        /* Hint */
+        .hint-box{background:#fff9e6;border:2px solid #ffd966;border-radius:8px;padding:16px;margin:2em 0}
+        .hint-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+        .hint-header strong{color:#d97706}
+        .hint-toggle{background:#02874d;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600}
+        .hint-toggle:hover{background:#006639}
+        .hint-content{display:none;color:#666;padding-top:8px;border-top:1px solid #ffd966;margin-top:8px}
+        .hint-content.show{display:block}
+        
+        /* Sidebar Navigation */
+        .CacheDetailNavigation{background:#fff;border:1px solid #ebeced;border-radius:3px;margin-bottom:1.5em}
+        .CacheDetailNavigation .btn-primary{display:block;width:100%;background:#02874d;color:#fff;border:none;padding:11px 12px;border-radius:3px;font-size:14px;font-weight:600;cursor:pointer;text-align:center;text-decoration:none;margin-bottom:1em}
+        .CacheDetailNavigation .btn-primary:hover{background:#00b265}
+        .CacheDetailNavigation ul{list-style:none;padding:0;margin:0}
+        .CacheDetailNavigation li{border-top:1px solid #ebeced;padding:.75em 1em}
+        .CacheDetailNavigation li:first-child{border-top:none}
+        .CacheDetailNavigation a{color:#4a4a4a;text-decoration:none}
+        .CacheDetailNavigation a:hover{color:#02874d}
+        
+        /* Attributes Widget */
+        .CacheDetailNavigationWidget{margin-bottom:1.5em}
+        .CacheDetailNavigationWidget h3{background:#ebeced;padding:.5em 1em;margin:0;font-size:14px}
+        .CacheDetailNavigationWidget .WidgetBody{background:#fff;border:1px solid #ebeced;padding:1em}
+        .CacheDetailNavigationWidget .WidgetBody img{margin:4px}
+        
+        /* Map */
+        .CDMapWidget{margin:2em 0}
+        .CDMapWidget .WidgetHeader{font-weight:bold;margin-bottom:.5em}
+        .map-canvas{width:325px;height:325px;background:linear-gradient(135deg,#a8d5ba 0%,#7ec9a0 100%);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:64px;color:#fff}
+        
+        /* Links */
+        a{color:#3d76c5;text-decoration:none}
+        a:hover{text-decoration:underline}
+        a:visited{color:#551a8b}
+        
+        /* Responsive */
+        @media(max-width:1024px){
+            nav,.container{min-width:100%;width:100%}
+            .span-17,.span-6{width:100%;float:none;margin:0;padding:0}
+            .sidebar{float:none;padding-left:0!important}
+            .map-canvas{width:100%;max-width:325px;margin:0 auto}
+        }
+    </style>
+</head>
+<body>
+    <!-- CONFIGURATIE -->
+    <div class="config">
+        <div id="cacheName">Het Mysterieuze Cadeau</div>
+        <div id="cacheType">Mystery Cache</div>
+        <div id="cacheCode">GC9XYZW</div>
+        <div id="cacheOwner">CacheCreator</div>
+        <div id="cacheCoords">N 52° 22.845 E 004° 38.234</div>
+        <div id="cacheDifficulty">3</div>
+        <div id="cacheTerrain">2</div>
+        <div id="cacheSize">Regular</div>
+        <div id="cacheFavorites">42</div>
+        <div id="cacheDescription">Deze bijzondere cache leidt je naar een verrassende locatie! Los de puzzel op om de coördinaten te vinden. Let goed op de details in de omgeving - niet alles is wat het lijkt. Deze cache is speciaal gemaakt voor een bijzondere gelegenheid.</div>
+        <div id="cacheHint">Kijk onder de bank bij de grote eik. De cache is magnetisch bevestigd aan de metalen onderkant.</div>
+    </div>
+
+    <nav>
+        <div class="wrapper">
+            <div class="logo">
+                <svg viewBox="0 0 800 150" width="200" height="40">
+                    <rect x="0" y="0" width="70" height="35" fill="#5f7d3e"/>
+                    <rect x="0" y="35" width="35" height="35" fill="#5f7d3e"/>
+                    <rect x="35" y="35" width="35" height="35" fill="#5f7d3e"/>
+                    <path d="M15 10 L25 10 L20 20 Z" fill="white"/>
+                    <circle cx="55" cy="17" r="8" fill="white"/>
+                    <rect x="45" y="22" width="20" height="8" fill="white"/>
+                    <path d="M10 45 L25 45 L25 60 L10 60 Z" fill="white"/>
+                    <circle cx="55" cy="52" r="8" fill="white"/>
+                    <text x="90" y="50" font-family="Arial, sans-serif" font-size="40" font-weight="bold" fill="#5f7d3e">GEOCACHING</text>
+                </svg>
+            </div>
+        </div>
+    </nav>
+
+    <div id="Content">
+        <div class="container">
+            <div class="span-17">
+                <div class="span-17 last BottomSpacing" id="cacheDetails">
+                    <div class="cacheDetailsTitle">
+                        <a href="#" class="cacheImage">
+                            <svg class="cache-icon" viewBox="0 0 50 50">
+                                <circle cx="25" cy="25" r="20" fill="currentColor"/>
+                                <text x="25" y="32" text-anchor="middle" fill="#fff" font-size="20">?</text>
+                            </svg>
+                        </a>
+                        <span class="h2 NoBottomSpacing">
+                            <span id="displayCacheName"></span>
+                        </span>
+                    </div>
+                    
+                    <div class="minorCacheDetails Clear">
+                        <div>
+                            Een cache van <a href="#" id="displayCacheOwner"></a>
+                        </div>
+                        <div>
+                            Verborgen: <span id="displayHiddenDate">vandaag</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="CacheStarLabels span-6 BottomSpacing">
+                    <dl>
+                        <dt>Moeilijkheid:</dt>
+                        <dd><span id="difficultyStars"></span></dd>
+                    </dl>
+                    <dl>
+                        <dt>Terrein:</dt>
+                        <dd><span id="terrainStars"></span></dd>
+                    </dl>
+                </div>
+
+                <div class="CacheSize span-5">
+                    <p class="AlignCenter">
+                        Grootte: <span class="minorCacheDetails" id="displaySize"></span>
+                    </p>
+                </div>
+
+                <div class="span-6 last">
+                    <div class="favorite">
+                        <div class="favorite-container">
+                            <span class="favorite-value" id="displayFavorites"></span> Favorites
+                        </div>
+                    </div>
+                </div>
+
+                <div class="Clear"></div>
+
+                <div class="CacheInformationTable">
+                    <div class="LocationData">
+                        <div class="span-9">
+                            <p class="NoBottomSpacing">
+                                <strong><span id="displayCoords"></span></strong>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="DownloadLinks">
+                        <dl>
+                            <dt class="label">Print:</dt>
+                            <dd>
+                                <a href="#">Geen logs</a>
+                                <a href="#">5 logs</a>
+                                <a href="#">10 logs</a>
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+
+                <h2 class="h3 CacheDescriptionHeader">Geocache Beschrijving:</h2>
+                <div class="UserSuppliedContent">
+                    <p id="displayDescription"></p>
+                </div>
+
+                <p>
+                    <strong>Aanvullende Hints</strong>
+                    (<span class="toggle-clue" onclick="toggleHint()" style="cursor:pointer;text-decoration:underline">Ontsleutel</span>)
+                </p>
+                <div class="hint-box">
+                    <div class="hint-header">
+                        <strong>💡 Versleutelde Hint</strong>
+                        <button class="hint-toggle" onclick="toggleHint()">Ontsleutel</button>
+                    </div>
+                    <div class="hint-content" id="hintContent"></div>
+                </div>
+            </div>
+
+            <div class="span-6 prepend-1 last sidebar">
+                <div class="CacheDetailNavigation">
+                    <a href="#" class="btn-primary">Log deze geocache</a>
+                    <ul>
+                        <li><a href="#">Bekijk alle logs (0)</a></li>
+                        <li><a href="#">Bekijk galerij (0)</a></li>
+                        <li><a href="#">Volg deze cache</a></li>
+                        <li><a href="#">Voeg toe aan lijst</a></li>
+                    </ul>
+                </div>
+
+                <div class="CacheDetailNavigationWidget">
+                    <h3 class="WidgetHeader">Kenmerken</h3>
+                    <div class="WidgetBody">
+                        <img src="data:image/svg+xml,%3Csvg width='30' height='30' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='15' cy='15' r='14' fill='%2302874d'/%3E%3Ctext x='15' y='20' text-anchor='middle' fill='white' font-size='16'%3E?%3C/text%3E%3C/svg%3E" alt="Mystery" title="Mystery">
+                        <img src="data:image/svg+xml,%3Csvg width='30' height='30' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='15' cy='15' r='14' fill='%2302874d'/%3E%3Ctext x='15' y='20' text-anchor='middle' fill='white' font-size='16'%3E✓%3C/text%3E%3C/svg%3E" alt="Parkeren" title="Parkeren in de buurt">
+                        <p class="NoBottomSpacing"><small><a href="#">Wat zijn kenmerken?</a></small></p>
+                    </div>
+                </div>
+
+                <div class="CDMapWidget">
+                    <p class="WidgetHeader NoBottomSpacing">
+                        <a href="#" title="Bekijk grotere kaart">Bekijk grotere kaart</a>
+                    </p>
+                    <div class="map-canvas">
+                        <iframe width="100%" height="100%" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" 
+                            src="https://www.openstreetmap.org/export/embed.html?bbox=4.630%2C52.378%2C4.640%2C52.388&amp;layer=mapnik&amp;marker=52.383%2C4.635" 
+                            style="border:0"></iframe>
+                    </div>
+                </div>
+            </div>
+
+            <div class="Clear"></div>
+        </div>
+    </div>
+
+    <script>
+        function loadConfig(){
+            document.getElementById('displayCacheName').textContent=document.getElementById('cacheName').textContent;
+            document.getElementById('displayCacheOwner').textContent=document.getElementById('cacheOwner').textContent;
+            document.getElementById('displayCoords').textContent=document.getElementById('cacheCoords').textContent;
+            document.getElementById('displaySize').textContent=document.getElementById('cacheSize').textContent;
+            document.getElementById('displayFavorites').textContent=document.getElementById('cacheFavorites').textContent;
+            document.getElementById('displayDescription').textContent=document.getElementById('cacheDescription').textContent;
+            document.getElementById('hintContent').textContent=document.getElementById('cacheHint').textContent;
+            
+            const difficulty=parseInt(document.getElementById('cacheDifficulty').textContent);
+            const terrain=parseInt(document.getElementById('cacheTerrain').textContent);
+            
+            document.getElementById('difficultyStars').innerHTML=createStars(difficulty);
+            document.getElementById('terrainStars').innerHTML=createStars(terrain);
+        }
+
+        function createStars(rating){
+            let html='<img src="data:image/svg+xml,%3Csvg width=\'60\' height=\'12\' xmlns=\'http://www.w3.org/2000/svg\'%3E';
+            for(let i=0;i<5;i++){
+                const color=i<rating?'%23ffd700':'%23ddd';
+                html+=`%3Cpolygon points=\'${i*12+6},1 ${i*12+7},4 ${i*12+10},4 ${i*12+8},6 ${i*12+9},9 ${i*12+6},7 ${i*12+3},9 ${i*12+4},6 ${i*12+2},4 ${i*12+5},4\' fill=\'${color}\'/%3E`;
+            }
+            html+='%3C/svg%3E" alt="'+rating+' out of 5">';
+            return html;
+        }
+
+        function toggleHint(){
+            const hintContent=document.getElementById('hintContent');
+            hintContent.classList.toggle('show');
+        }
+
+        loadConfig();
+    </script>
+</body>
+</html>
